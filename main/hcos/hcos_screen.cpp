@@ -38,8 +38,8 @@ namespace hcos {
 #define C_RED lv_color_hex(0xff5050)
 
 static const int FRAME_MS = 66;          // ~15 frames per second, only while this screen is shown
-static const int CHART_W = 104, CHART_H = 42, CHART_PTS = 27, CHART_STEP = 4;
-static const int FAN_S = 30;
+static const int CHART_W = 104, CHART_H = 38, CHART_PTS = 27, CHART_STEP = 4;
+static const int FAN_S = 24;
 static const int TH_W = 42, TH_H = 58;
 
 struct Screen {
@@ -179,7 +179,7 @@ static void draw_chart()
         line.color = k < 0.5f ? mix(C_CYAN, C_PURPLE, k * 2) : mix(C_PURPLE, C_PINK, (k - 0.5f) * 2);
         lv_canvas_draw_line(S.chart, &pts[i], 2, &line);
     }
-    lv_obj_set_pos(S.chartDot, 74 + pts[S.histN - 1].x - 3, 58 + pts[S.histN - 1].y - 3);
+    lv_obj_set_pos(S.chartDot, 74 + pts[S.histN - 1].x - 3, 63 + pts[S.histN - 1].y - 3);
 }
 
 static void draw_fan()
@@ -200,8 +200,8 @@ static void draw_fan()
         float a = S.fanAngle + b * (2 * M_PI / 5);
         lv_point_t p[4];
         p[0] = {(lv_coord_t) (c + cosf(a - 0.35f) * 3), (lv_coord_t) (c + sinf(a - 0.35f) * 3)};
-        p[1] = {(lv_coord_t) (c + cosf(a - 0.15f) * 12.5f), (lv_coord_t) (c + sinf(a - 0.15f) * 12.5f)};
-        p[2] = {(lv_coord_t) (c + cosf(a + 0.45f) * 11.5f), (lv_coord_t) (c + sinf(a + 0.45f) * 11.5f)};
+        p[1] = {(lv_coord_t) (c + cosf(a - 0.15f) * 10.0f), (lv_coord_t) (c + sinf(a - 0.15f) * 10.0f)};
+        p[2] = {(lv_coord_t) (c + cosf(a + 0.45f) * 9.2f), (lv_coord_t) (c + sinf(a + 0.45f) * 9.2f)};
         p[3] = {(lv_coord_t) (c + cosf(a + 0.35f) * 3), (lv_coord_t) (c + sinf(a + 0.35f) * 3)};
         lv_canvas_draw_polygon(S.fan, p, 4, &blade);
     }
@@ -280,12 +280,12 @@ static void share_bubble(double diff, bool bad)
     char t[24], d[12];
     fmt_diff(d, sizeof(d), diff);
     snprintf(t, sizeof(t), "%s %s", bad ? LV_SYMBOL_CLOSE : LV_SYMBOL_OK, d);
-    lv_obj_t *b = label(S.scr, &lv_font_montserrat_10, lv_color_hex(0x04110a), 140, 76, t);
+    lv_obj_t *b = label(S.scr, &lv_font_montserrat_10, lv_color_hex(0x04110a), 140, 86, t);
     lv_obj_set_style_bg_color(b, bad ? C_RED : C_LIVE, 0);
     lv_obj_set_style_bg_opa(b, LV_OPA_COVER, 0);
     lv_obj_set_style_radius(b, 3, 0);
     lv_obj_set_style_pad_hor(b, 3, 0);
-    anim(b, anim_y, 76, 52, 1300, 0, true);
+    anim(b, anim_y, 86, 66, 1300, 0, true);
     anim(b, anim_opa, 255, 0, 1300, 0, false);
 }
 
@@ -354,7 +354,7 @@ static void update_data(int64_t now)
         S.lastBest = best;
     }
 
-    snprintf(buf, sizeof(buf), "%u RPM", (unsigned) S.rpmNow);
+    snprintf(buf, sizeof(buf), "%u", (unsigned) S.rpmNow);
     lv_label_set_text(S.rpm, buf);
     snprintf(buf, sizeof(buf), "%.0f", S.tempNow);
     lv_label_set_text(S.temp, buf);
@@ -494,16 +494,16 @@ lv_obj_t *screen_create(Board *board)
     lv_obj_set_style_border_width(S.bdBox, 1, 0);
     lv_obj_t *bdTag = label(S.bdBox, &lv_font_montserrat_10, lv_color_hex(0xff6fae), 3, 1, "BD");
     (void) bdTag;
-    S.bd = label(S.bdBox, &ui_font_OpenSansBold13, C_WHITE, 20, 0, "-");
+    S.bd = label(S.bdBox, &ui_font_OpenSansBold13, C_WHITE, 23, 0, "-");
 
     // chart
-    S.chartBox = box(scr, 73, 57, CHART_W + 2, CHART_H + 2, C_PINK, 0, 5);
+    S.chartBox = box(scr, 73, 62, CHART_W + 2, CHART_H + 2, C_PINK, 0, 5);
     lv_obj_set_style_border_color(S.chartBox, C_PINK, 0);
     lv_obj_set_style_border_opa(S.chartBox, 90, 0);
     lv_obj_set_style_border_width(S.chartBox, 1, 0);
-    S.chart = canvas(scr, 74, 58, CHART_W, CHART_H, &S.chartBuf);
-    S.shares = label(scr, &lv_font_montserrat_10, C_MUTED, 77, 59, "0 shares");
-    S.chartDot = box(scr, 74 + CHART_W - 4, 70, 6, 6, C_WHITE, LV_OPA_COVER, LV_RADIUS_CIRCLE);
+    S.chart = canvas(scr, 74, 63, CHART_W, CHART_H, &S.chartBuf);
+    S.shares = label(scr, &lv_font_montserrat_10, C_MUTED, 77, 64, "0 shares");
+    S.chartDot = box(scr, 74 + CHART_W - 4, 75, 6, 6, C_WHITE, LV_OPA_COVER, LV_RADIUS_CIRCLE);
     lv_obj_set_style_outline_color(S.chartDot, C_PINK, 0);
     lv_obj_set_style_outline_width(S.chartDot, 2, 0);
     lv_obj_set_style_outline_opa(S.chartDot, 160, 0);
@@ -532,10 +532,13 @@ lv_obj_t *screen_create(Board *board)
     lv_obj_set_style_border_color(fanBox, C_CYAN, 0);
     lv_obj_set_style_border_opa(fanBox, 90, 0);
     lv_obj_set_style_border_width(fanBox, 1, 0);
-    S.fan = canvas(fanBox, 7, 2, FAN_S, FAN_S, &S.fanBuf);
-    S.rpm = label(fanBox, &lv_font_montserrat_10, C_TXT, 0, 34, "0 RPM");
+    S.fan = canvas(fanBox, 10, 2, FAN_S, FAN_S, &S.fanBuf);
+    S.rpm = label(fanBox, &lv_font_montserrat_10, C_TXT, 0, 26, "0");
     lv_obj_set_style_text_align(S.rpm, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_set_width(S.rpm, 44);
+    lv_obj_t *rpmL = label(fanBox, &lv_font_montserrat_10, C_MUTED, 0, 36, "RPM");
+    lv_obj_set_style_text_align(rpmL, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_set_width(rpmL, 44);
 
     // glass thermometer
     lv_obj_t *thBox = box(scr, 184, 98, 46, 66, lv_color_hex(0x10283a), LV_OPA_COVER, 7);
@@ -554,13 +557,13 @@ lv_obj_t *screen_create(Board *board)
     lv_obj_set_style_border_opa(side, 35, 0);
     lv_obj_set_style_border_width(side, 1, 0);
     S.asic = label(side, &ui_font_OpenSansBold13, C_WHITE, 5, 3, board ? board->getAsicModel() : "");
-    for (int i = 0; i < 5; i++) S.rows[i] = label(side, &lv_font_montserrat_14, C_TXT, 5, 20 + i * 14, "");
-    label(side, &lv_font_montserrat_10, C_MUTED, 5, 94, "CHIPS");
+    for (int i = 0; i < 5; i++) S.rows[i] = label(side, &lv_font_montserrat_14, C_TXT, 5, 23 + i * 15, "");
+    label(side, &lv_font_montserrat_10, C_MUTED, 5, 99, "CHIPS");
     for (int i = 0; i < 4; i++) {
         S.chips[i] = lv_bar_create(side);
         lv_obj_remove_style_all(S.chips[i]);
-        lv_obj_set_pos(S.chips[i], 5 + i * 17, 108);
-        lv_obj_set_size(S.chips[i], 13, 32);
+        lv_obj_set_pos(S.chips[i], 5 + i * 17, 112);
+        lv_obj_set_size(S.chips[i], 13, 28);
         lv_obj_set_style_bg_color(S.chips[i], C_WHITE, 0);
         lv_obj_set_style_bg_opa(S.chips[i], 20, 0);
         lv_obj_set_style_radius(S.chips[i], 2, 0);
