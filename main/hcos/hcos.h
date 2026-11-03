@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include "esp_http_server.h"
 
-#define HCOS_VERSION "0.3.0"
+#define HCOS_VERSION "0.3.1"
 
 namespace hcos {
 
