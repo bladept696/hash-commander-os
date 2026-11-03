@@ -556,7 +556,9 @@ void register_http(httpd_handle_t server)
 void start()
 {
     init_log();
-    xTaskCreatePSRAM(live_task, "hcos live", 4096, NULL, 2, NULL);
+    // internal RAM stack: this task writes NVS (mark_healthy) and the flash write turns the PSRAM cache off,
+    // so a PSRAM stack crashes it (the same reason the OTA task is not created on PSRAM)
+    xTaskCreate(live_task, "hcos live", 6144, NULL, 2, NULL);
 }
 
 } // namespace hcos
