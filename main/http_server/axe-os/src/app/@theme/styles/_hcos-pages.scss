@@ -21,7 +21,7 @@
                 repeating-linear-gradient(0deg, rgba(177, 77, 255, 0.13) 0 1px, transparent 1px 46px);
     transform: perspective(900px) rotateX(68deg); transform-origin: 50% 0; opacity: 0.55; animation: hcGridMove 4s linear infinite;
   }
-  nb-layout-column { position: relative; z-index: 1; perspective: 1600px; }
+  nb-layout-column { position: relative; z-index: 1; }
 
   nb-card:not(.modal) {
     border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1);
@@ -79,7 +79,7 @@
   .hc-block:nth-child(2n) { animation-delay: -1.7s; }
   .hc-block:nth-child(3n) { animation-delay: -3.1s; }
   .hc-block__body {
-    position: relative; height: 120px; border-radius: 14px; transform: rotateX(48deg) rotateZ(-28deg); transform-style: preserve-3d;
+    position: relative; height: 150px; border-radius: 14px; transform: rotateX(38deg) rotateZ(-22deg); transform-style: preserve-3d;
     background: linear-gradient(135deg, #2a1f4a, #120d22); border: 1px solid rgba(255, 79, 216, 0.75);
     box-shadow: 0 0 26px rgba(255, 79, 216, 0.35), inset 0 0 20px rgba(177, 77, 255, 0.45), 18px 22px 0 #1a1033, 18px 22px 30px rgba(0, 0, 0, 0.6);
     display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 0.45s ease;
@@ -99,10 +99,10 @@
 
   /* ---- Settings: section menu + dials ---- */
   .hc-settings-shell { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 18px; align-items: start; }
-  .hc-settings-main { min-width: 0; }
-  @media (max-width: 900px) { .hc-settings-shell { grid-template-columns: 1fr; } }
-  .hc-secnav { position: sticky; top: 90px; display: flex !important; flex-direction: column; gap: 8px; z-index: 2; }
-  @media (max-width: 900px) { .hc-secnav { position: static; flex-direction: row; flex-wrap: wrap; } }
+  .hc-settings-main { min-width: 0; grid-column: 2; }
+  @media (max-width: 900px) { .hc-settings-shell { grid-template-columns: 1fr; } .hc-settings-main { grid-column: 1; } }
+  .hc-secnav { position: fixed; top: 90px; width: 190px; display: flex !important; flex-direction: column; gap: 8px; z-index: 2; }
+  @media (max-width: 900px) { .hc-secnav { position: static; width: auto; flex-direction: row; flex-wrap: wrap; } }
   .hc-secnav button {
     text-align: left; padding: 11px 14px; border-radius: 12px; font: 700 13px 'Segoe UI', sans-serif; color: #b9b0d8; cursor: pointer;
     background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); transition: transform 0.2s, background 0.2s, color 0.2s, box-shadow 0.2s;
@@ -189,4 +189,14 @@
     i:nth-child(3) { animation-delay: 1.6s; }
     &.off { opacity: 0.25; i { display: none; } }
   }
+
+  app-swarm .totals nb-card { transform: perspective(700px) rotateX(12deg); transform-origin: 50% 100%; }
+  app-swarm .totals nb-card .text-primary { font-size: 1.5rem; }
+  app-swarm .totals nb-card:nth-child(1) .text-primary { color: #ff8be6 !important; text-shadow: 0 0 14px #ff4fd8; }
+  app-swarm .totals nb-card:nth-child(2) .text-primary { color: #8be9ff !important; text-shadow: 0 0 14px #4fd6ff; }
+  app-swarm .totals nb-card:nth-child(3) .text-primary { color: #ffd23f !important; text-shadow: 0 0 14px #ffb020; }
+  .swarm-table thead tr, .swarm-table thead th, .swarm-table thead td {
+    background: linear-gradient(90deg, rgba(177, 77, 255, 0.35), rgba(255, 79, 216, 0.2)) !important; color: #fff !important; border-color: rgba(255, 255, 255, 0.08) !important;
+  }
+  .swarm-table td { border-color: rgba(255, 255, 255, 0.06) !important; }
 }
