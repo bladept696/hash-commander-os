@@ -244,3 +244,11 @@
   box-shadow: 0 0 12px rgba(155, 92, 255, 0.55);
   align-self: center;
 }
+
+/* Hash Commander OS: the logo (NERDQaxe++ BITMINER33) is wide; on phones it must not be squeezed to nothing */
+.logo-container, .logo-container .logo { flex-shrink: 0; min-width: 0; }
+@media (max-width: 700px) {
+  .hcos-badge { display: none; }
+  .logo-container .logo { padding-left: 0.5rem !important; border-left: 0 !important; }
+  .logo-container .logo img { max-height: 24px !important; width: auto; max-width: 52vw !important; }
+}
