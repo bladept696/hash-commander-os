@@ -329,7 +329,7 @@ static void update_data(int64_t now)
     int pct = expected > 0 ? (int) (hr * 100 / expected) : 0;
     if (pct > 100) pct = 100;
     lv_bar_set_value(S.effBar, pct, LV_ANIM_ON);
-    snprintf(buf, sizeof(buf), "%d%% do previsto  %.1f J/TH", pct, hr > 0 ? power / (hr / 1000.0f) : 0.0f);
+    snprintf(buf, sizeof(buf), "%d%% previsto  %.1f J/TH", pct, hr > 0 ? power / (hr / 1000.0f) : 0.0f);
     lv_label_set_text(S.effLbl, buf);
 
     int64_t up = (now - SYSTEM_MODULE.getStartTime()) / 1000000;
@@ -460,7 +460,7 @@ lv_obj_t *screen_create(Board *board)
 
     // top: live + IP + wifi
     S.liveDot = box(scr, 6, 6, 5, 5, C_LIVE, LV_OPA_COVER, LV_RADIUS_CIRCLE);
-    S.liveLbl = label(scr, &lv_font_montserrat_12, lv_color_hex(0x5dffb0), 14, 2, "HC OS ao vivo");
+    S.liveLbl = label(scr, &lv_font_montserrat_14, lv_color_hex(0x5dffb0), 14, 2, "HC OS ao vivo");
     lv_obj_t *ipBox = box(scr, 146, 2, 100, 15, lv_color_hex(0x0b1520), LV_OPA_COVER, 4);
     lv_obj_set_style_border_color(ipBox, C_CYAN, 0);
     lv_obj_set_style_border_width(ipBox, 1, 0);
@@ -477,7 +477,7 @@ lv_obj_t *screen_create(Board *board)
     lv_obj_set_style_border_color(badge, lv_color_hex(0x9b5cff), 0);
     lv_obj_set_style_border_width(badge, 1, 0);
     lv_obj_center(label(badge, &lv_font_montserrat_10, lv_color_hex(0xd6c2ff), 0, 0, "HC OS " HCOS_VERSION));
-    S.uptime = label(scr, &lv_font_montserrat_12, C_YELLOW, 74, 46, "0d 0h 00m 00s");
+    S.uptime = label(scr, &lv_font_montserrat_14, C_YELLOW, 74, 46, "0d 0h 00m 00s");
 
     // best difficulty
     S.bdBox = box(scr, 6, 63, 64, 16, lv_color_hex(0x1a0a1c), LV_OPA_COVER, 4);
@@ -517,7 +517,7 @@ lv_obj_t *screen_create(Board *board)
     lv_obj_set_style_bg_grad_dir(S.effBar, LV_GRAD_DIR_HOR, LV_PART_INDICATOR);
     lv_obj_set_style_bg_opa(S.effBar, LV_OPA_COVER, LV_PART_INDICATOR);
     lv_obj_set_style_radius(S.effBar, 2, LV_PART_INDICATOR);
-    S.effLbl = label(scr, &lv_font_montserrat_12, C_MUTED, 6, 154, "");
+    S.effLbl = label(scr, &lv_font_montserrat_14, C_MUTED, 6, 153, "");
 
     // fan
     lv_obj_t *fanBox = box(scr, 184, 44, 46, 50, lv_color_hex(0x121d2b), LV_OPA_COVER, 6);
@@ -546,7 +546,7 @@ lv_obj_t *screen_create(Board *board)
     lv_obj_set_style_border_opa(side, 35, 0);
     lv_obj_set_style_border_width(side, 1, 0);
     S.asic = label(side, &ui_font_OpenSansBold13, C_WHITE, 5, 3, board ? board->getAsicModel() : "");
-    for (int i = 0; i < 5; i++) S.rows[i] = label(side, &lv_font_montserrat_12, C_TXT, 5, 21 + i * 14, "");
+    for (int i = 0; i < 5; i++) S.rows[i] = label(side, &lv_font_montserrat_14, C_TXT, 5, 20 + i * 14, "");
     label(side, &lv_font_montserrat_10, C_MUTED, 5, 94, "CHIPS");
     for (int i = 0; i < 4; i++) {
         S.chips[i] = lv_bar_create(side);
