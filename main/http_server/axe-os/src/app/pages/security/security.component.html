@@ -9,6 +9,21 @@
                 </nb-card-header>
 
                 <nb-card-body class="card-body-pad">
+                    <!-- Hash Commander OS: 3D shield, green when OTP is on (only with the HC OS theme) -->
+                    <div class="hcos-only hc-shield" [class.on]="info.enabled">
+                        <div class="ring"></div><div class="ring r2"></div>
+                        <svg width="140" height="164" viewBox="0 0 150 176" aria-hidden="true">
+                            <defs>
+                                <linearGradient id="hcShieldOff" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#c06bff"/><stop offset="1" stop-color="#ff4fd8"/></linearGradient>
+                                <linearGradient id="hcShieldOn" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#7dffc0"/><stop offset="1" stop-color="#14b86a"/></linearGradient>
+                            </defs>
+                            <path d="M75 6 L140 30 V82 C140 128 112 156 75 170 C38 156 10 128 10 82 V30Z" [attr.fill]="info.enabled ? 'url(#hcShieldOn)' : 'url(#hcShieldOff)'"/>
+                            <path d="M75 18 L128 38 V82 C128 120 106 144 75 156 C44 144 22 120 22 82 V38Z" fill="#120d22"/>
+                            <rect x="52" y="78" width="46" height="38" rx="7" [attr.fill]="info.enabled ? '#3dff9a' : '#ff4fd8'"/>
+                            <path [attr.d]="info.enabled ? 'M60 78 V66 C60 50 90 50 90 66 V78' : 'M60 78 V62 C60 46 90 46 90 58'" fill="none" [attr.stroke]="info.enabled ? '#3dff9a' : '#ff4fd8'" stroke-width="7"/>
+                            <circle cx="75" cy="96" r="5" fill="#120d22"/>
+                        </svg>
+                    </div>
                     <!-- Status -->
                     <div class="kv">
                         <div class="label">{{ 'SECURITY.OTP_STATUS' | translate }}:</div>

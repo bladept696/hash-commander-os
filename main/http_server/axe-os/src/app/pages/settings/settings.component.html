@@ -1,3 +1,14 @@
+<!-- Hash Commander OS: section menu on the left (only with the HC OS theme) -->
+<div class="hc-settings-shell">
+<nav class="hcos-only hc-secnav" aria-label="Settings sections">
+  <button type="button" (click)="hcGo('cfg-wifi')">📶 Wi-Fi</button>
+  <button type="button" (click)="hcGo('cfg-pool')">⛏ Pool</button>
+  <button type="button" (click)="hcGo('cfg-asic')">⚡ Mineração</button>
+  <button type="button" (click)="hcGo('cfg-fan')">🌀 Ventoinhas</button>
+  <button type="button" (click)="hcGo('cfg-misc')">🖥 Ecrã e outros</button>
+  <button type="button" (click)="hcGo('cfg-update')">⇪ Atualizar</button>
+</nav>
+<div class="hc-settings-main">
 <!-- update.component.html -->
 
 <nb-card *ngIf="currentWebVersion !== '' && currentVersion !== currentWebVersion" class="alert-box">
@@ -24,7 +35,7 @@ Web-UI: {{ currentWebVersion }}<br/>
 <!-- Flex container for the update cards -->
 <div class="cards-container">
   <!-- Single "Release & Update" Card -->
-  <nb-card class="card-item version-card">
+  <nb-card class="card-item version-card" id="cfg-update">
     <nb-card-header>
       <div class="version-header">
         <span>{{ 'UPDATE.RELEASE_AND_UPDATE' | translate }}</span>
@@ -175,4 +186,6 @@ Web-UI: {{ currentWebVersion }}<br/>
       </div>
     </nb-card-body>
   </nb-card>
+</div>
+</div>
 </div>

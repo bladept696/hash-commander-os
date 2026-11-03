@@ -87,6 +87,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
     );
   }
 
+  /** Hash Commander OS section menu: scrolls to one settings card */
+  public hcGo(id: string): void {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   ngOnInit() {
     this.info$.pipe(this.loadingService.lockUIUntilComplete())
       .subscribe(info => {

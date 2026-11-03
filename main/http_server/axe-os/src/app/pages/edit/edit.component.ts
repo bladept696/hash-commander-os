@@ -582,6 +582,14 @@ export class EditComponent implements OnInit {
     return this.form?.controls['coreVoltage'].value > maxVoltage;
   }
 
+  /** Hash Commander OS dials: how far the value is between the lowest and the highest option (SVG dash for a 270° arc, r = 46) */
+  public hcDial(value: number, options: { value: number }[]): string {
+    const vals = (options || []).map((o) => Number(o.value)).filter((v) => !isNaN(v));
+    const lo = Math.min(...vals), hi = Math.max(...vals);
+    const pct = vals.length && hi > lo ? Math.max(0, Math.min(1, (Number(value) - lo) / (hi - lo))) : 0.5;
+    return `${(pct * 216.8).toFixed(1)} 400`;
+  }
+
   public isFrequencyTooHigh(): boolean {
     if (!this.asicFrequencyValues.length) return false;
     const maxFrequency = Math.max(...this.asicFrequencyValues);

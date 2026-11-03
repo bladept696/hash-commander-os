@@ -7,7 +7,7 @@
         [title]="'SECURITY.OTP_NUDGE_TITLE' | translate" [message]="'SECURITY.OTP_NUDGE_TEXT' | translate">
     </app-alert-banner>
     <form [formGroup]="form">
-        <nb-card>
+        <nb-card id="cfg-wifi">
             <nb-card-header>{{ 'SETTINGS.WIFI_SETTINGS' | translate }}</nb-card-header>
             <nb-card-body>
                 <div class="form-row">
@@ -330,6 +330,20 @@
                 </div>
             </nb-card-header>
             <nb-card-body>
+                <!-- Hash Commander OS: frequency and voltage as dials (only with the HC OS theme) -->
+                <div class="hcos-only hc-dials">
+                    <svg width="0" height="0" style="position:absolute"><defs><linearGradient id="hcDialG" x1="0" x2="1"><stop offset="0" stop-color="#4fd6ff"/><stop offset="1" stop-color="#ff4fd8"/></linearGradient></defs></svg>
+                    <div class="hc-dial" [class.hot]="isFrequencyTooHigh()">
+                        <svg viewBox="0 0 120 120"><circle class="bg" cx="60" cy="60" r="46" stroke-dasharray="216.8 400" transform="rotate(135 60 60)"/>
+                            <circle class="arc" cx="60" cy="60" r="46" stroke="url(#hcDialG)" [attr.stroke-dasharray]="hcDial(form.controls['frequency'].value, frequencyOptions)" transform="rotate(135 60 60)"/></svg>
+                        <b>{{ form.controls['frequency'].value }}</b><small>MHz · {{ 'SETTINGS.FREQUENCY' | translate }}</small>
+                    </div>
+                    <div class="hc-dial" [class.hot]="isVoltageTooHigh()">
+                        <svg viewBox="0 0 120 120"><circle class="bg" cx="60" cy="60" r="46" stroke-dasharray="216.8 400" transform="rotate(135 60 60)"/>
+                            <circle class="arc" cx="60" cy="60" r="46" stroke="url(#hcDialG)" [attr.stroke-dasharray]="hcDial(form.controls['coreVoltage'].value, voltageOptions)" transform="rotate(135 60 60)"/></svg>
+                        <b>{{ form.controls['coreVoltage'].value }}</b><small>mV · {{ 'SETTINGS.CORE_VOLTAGE' | translate }}</small>
+                    </div>
+                </div>
                 <ng-container *ngIf="supportLevel === 0">
                     <div class="form-row">
                         <label for="frequency" class="form-label">{{ 'SETTINGS.FREQUENCY' | translate }}:</label>
@@ -402,7 +416,7 @@
                 </ng-container>
             </nb-card-body>
         </nb-card>
-        <nb-card>
+        <nb-card id="cfg-fan">
             <nb-card-header>{{ 'FAN.TITLE' | translate }}</nb-card-header>
             <nb-card-body>
                 <div>
@@ -593,7 +607,7 @@
             </nb-card-body>
         </nb-card>
         <nb-card>
-            <nb-card-header>{{ 'MISC.TITLE' | translate }}</nb-card-header>
+            <nb-card-header id="cfg-misc">{{ 'MISC.TITLE' | translate }}</nb-card-header>
             <nb-card-body>
                 <div class="form-row" *ngIf="hasCanExtension">
                     <nb-checkbox formControlName="canMaster">CAN Master Mode</nb-checkbox>

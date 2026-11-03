@@ -7,6 +7,12 @@
         <nb-card>
             <nb-card-header>{{ 'INFLUXDB.TITLE' | translate }}</nb-card-header>
             <nb-card-body>
+                <!-- Hash Commander OS: the miner sending its data to the database (only with the HC OS theme) -->
+                <div class="hcos-only hc-flow">
+                    <div class="hc-node"><div class="ic">⛏</div><b>Esta máquina</b><small>{{ form.get('enabled')?.value ? 'a enviar dados' : 'parada' }}</small></div>
+                    <div class="hc-wire" [class.off]="!form.get('enabled')?.value"><i></i><i></i><i></i></div>
+                    <div class="hc-node"><div class="hc-cyl"><i></i></div><b>InfluxDB</b><small>{{ form.get('url')?.value || 'sem endereço' }}</small></div>
+                </div>
                 <div class="form-row">
                     <nb-checkbox formControlName="enabled">{{ 'INFLUXDB.ENABLED' | translate }}</nb-checkbox>
                 </div>

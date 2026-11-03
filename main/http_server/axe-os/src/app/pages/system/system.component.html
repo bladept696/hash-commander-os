@@ -3,6 +3,13 @@
   <nb-card *ngIf="!showLogs">
     <nb-card-header>{{ 'SYSTEM.OVERVIEW' | translate }}</nb-card-header>
     <nb-card-body>
+      <!-- Hash Commander OS: the ASIC as a slowly turning 3D chip (only with the HC OS theme) -->
+      <div class="hcos-only hc-sys-hero">
+        <div class="hc-cube-wrap"><div class="hc-cube">
+          <div class="f">{{ info.asicModel }}<small>{{ info.deviceModel }}</small></div><div class="b"></div><div class="l"></div><div class="r"></div><div class="t"></div><div class="u"></div>
+        </div></div>
+        <div><h2>{{ info.network?.hostname || info.deviceModel }}</h2><p>{{ info.deviceModel }} · {{ info.version }}</p><p>{{ info.network?.ipAddr }}</p></div>
+      </div>
       <table class="overview-table">
         <tr>
           <td><b>{{ 'SYSTEM.MODEL' | translate }}:</b></td>

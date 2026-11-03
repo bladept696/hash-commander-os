@@ -68,6 +68,27 @@
     </nb-card>
   </div>
 
+  <!-- Hash Commander OS: the machines as floating 3D blocks (only shown with the HC OS theme) -->
+  <div class="hcos-only hc-swarm3d" *ngIf="swarm.length">
+    <div class="hc-block" *ngFor="let axe of swarm" [class.off]="!axe.hashRate">
+      <div class="hc-block__body">
+        <b>{{ axe.hashRate * 1000000000 | hashSuffix }}</b>
+        <small>{{ axe.hostname }} · {{ axe.temp | number:'1.0-1' }}°C</small>
+      </div>
+      <div class="hc-block__info">
+        <a [href]="'http://' + axe.IP" target="_blank">{{ axe.IP }}</a><br />
+        <span [class.g]="axe.hashRate" [class.w]="!axe.hashRate">● {{ axe.hashRate ? 'a minerar' : 'sem hashrate' }}</span>
+        · {{ axe.sharesAccepted | number:'1.0-0' }} shares<br />
+        {{ axe.power | number:'1.1-1' }} W · {{ axe.version }}
+        <div class="hc-block__acts">
+          <button nbButton status="warning" size="tiny" (click)="edit(axe)" [nbTooltip]="'UPDATE.EDIT_SETTINGS' | translate"><nb-icon icon="edit-outline"></nb-icon></button>
+          <button nbButton status="danger" size="tiny" (click)="restart(axe)" [nbTooltip]="'UPDATE.RESTART_DEVICE' | translate"><nb-icon icon="sync-outline"></nb-icon></button>
+          <button nbButton status="basic" size="tiny" (click)="remove(axe)" [nbTooltip]="'UPDATE.REMOVE_FROM_LIST' | translate"><nb-icon icon="trash-2-outline"></nb-icon></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Swarm Overview Table -->
   <nb-card class="mb-0">
     <nb-card-header>{{ 'SWARM.OVERVIEW' | translate }}</nb-card-header>
