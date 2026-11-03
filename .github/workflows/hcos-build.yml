@@ -56,6 +56,15 @@ jobs:
         sudo cp build/esp-miner.elf "out/hcos-${LABEL}-${VERSION}.elf"
         ls -la out
 
+    - name: Keep the web page files (to preview the dashboard without a miner)
+      run: sudo tar -czf out-web.tgz -C main/http_server/axe-os/dist axe-os
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: hcos-web-${{ env.VERSION }}
+        path: out-web.tgz
+        retention-days: 14
+
     - uses: actions/upload-artifact@v4
       with:
         name: hcos-${{ env.VERSION }}
