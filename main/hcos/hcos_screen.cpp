@@ -16,6 +16,7 @@ LV_FONT_DECLARE(ui_font_OpenSansBold13);
 LV_FONT_DECLARE(ui_font_OpenSansBold14);
 LV_FONT_DECLARE(ui_font_OpenSansBold24);
 LV_FONT_DECLARE(ui_font_OpenSansBold45);
+LV_IMG_DECLARE(hcos_logo);
 
 namespace hcos {
 
@@ -39,14 +40,12 @@ namespace hcos {
 static const int FRAME_MS = 66;          // ~15 frames per second, only while this screen is shown
 static const int CHART_W = 104, CHART_H = 42, CHART_PTS = 27, CHART_STEP = 4;
 static const int FAN_S = 30;
-static const int TH_W = 42, TH_H = 72;
-static const char *TITLE = "NERDQaxe";
+static const int TH_W = 42, TH_H = 58;
 
 struct Screen {
     Board *board = nullptr;
     lv_obj_t *scr = nullptr;
     lv_obj_t *liveDot = nullptr, *liveLbl = nullptr, *ip = nullptr, *wifi[4] = {};
-    lv_obj_t *letters[8] = {};
     lv_obj_t *uptime = nullptr, *bd = nullptr, *bdBox = nullptr, *shares = nullptr;
     lv_obj_t *hr = nullptr, *hrGlow = nullptr, *hrUnit = nullptr, *effBar = nullptr, *effLbl = nullptr;
     lv_obj_t *chart = nullptr, *chartDot = nullptr, *chartBox = nullptr;
@@ -347,7 +346,7 @@ static void update_data(int64_t now)
         S.lastBest = best;
     }
 
-    snprintf(buf, sizeof(buf), "%u", (unsigned) S.rpmNow);
+    snprintf(buf, sizeof(buf), "%u RPM", (unsigned) S.rpmNow);
     lv_label_set_text(S.rpm, buf);
     snprintf(buf, sizeof(buf), "%.0f", S.tempNow);
     lv_label_set_text(S.temp, buf);
@@ -436,13 +435,6 @@ static void frame_cb(lv_timer_t *)
     lv_obj_set_style_bg_opa(S.liveDot, 120 + (int) (135 * p), 0);
     lv_obj_set_style_bg_opa(S.chartDot, 150 + (int) (105 * p), 0);
 
-    // a white shine runs over the title letters every 3 s
-    float shine = (S.frame % 90) / 90.0f * 24 - 2;
-    for (int i = 0; i < 8; i++) {
-        lv_color_t base = i < 4 ? C_GREEN : C_PINK;
-        float k = 1 - fabsf(i - shine) / 1.5f;
-        lv_obj_set_style_text_color(S.letters[i], mix(base, C_WHITE, k * 0.45f), 0);
-    }
 
 }
 
@@ -468,28 +460,24 @@ lv_obj_t *screen_create(Board *board)
 
     // top: live + IP + wifi
     S.liveDot = box(scr, 6, 6, 5, 5, C_LIVE, LV_OPA_COVER, LV_RADIUS_CIRCLE);
-    S.liveLbl = label(scr, &lv_font_montserrat_10, lv_color_hex(0x5dffb0), 14, 2, "HC OS ao vivo");
+    S.liveLbl = label(scr, &lv_font_montserrat_12, lv_color_hex(0x5dffb0), 14, 2, "HC OS ao vivo");
     lv_obj_t *ipBox = box(scr, 146, 2, 100, 15, lv_color_hex(0x0b1520), LV_OPA_COVER, 4);
     lv_obj_set_style_border_color(ipBox, C_CYAN, 0);
     lv_obj_set_style_border_width(ipBox, 1, 0);
     S.ip = label(ipBox, &lv_font_montserrat_10, C_CYAN, 5, 1, "0.0.0.0");
     for (int i = 0; i < 4; i++) S.wifi[i] = box(ipBox, 79 + i * 3, 10 - i * 2, 2, 2 + i * 2, lv_color_hex(0x2a8cff), LV_OPA_COVER, 0);
 
-    // title, one label per letter so the shine can run over it
-    int x = 6;
-    for (int i = 0; i < 8; i++) {
-        char ch[2] = {TITLE[i], 0};
-        S.letters[i] = label(scr, &ui_font_OpenSansBold24, i < 4 ? C_GREEN : C_PINK, x, 12, ch);
-        x += lv_txt_get_width(ch, 1, &ui_font_OpenSansBold24, 0, LV_TEXT_FLAG_NONE);
-    }
-    label(scr, &ui_font_OpenSansBold13, C_PINK, x + 1, 12, "++");
+    // the real logo (NERDQaxe++ BITMINER33) as an image: smooth edges, same lettering as the web page
+    lv_obj_t *logo = lv_img_create(scr);
+    lv_img_set_src(logo, &hcos_logo);
+    lv_obj_set_pos(logo, 6, 18);
 
     // HC OS badge + uptime
     lv_obj_t *badge = box(scr, 6, 45, 64, 14, lv_color_hex(0x1c0f3a), LV_OPA_COVER, 4);
     lv_obj_set_style_border_color(badge, lv_color_hex(0x9b5cff), 0);
     lv_obj_set_style_border_width(badge, 1, 0);
     lv_obj_center(label(badge, &lv_font_montserrat_10, lv_color_hex(0xd6c2ff), 0, 0, "HC OS " HCOS_VERSION));
-    S.uptime = label(scr, &lv_font_montserrat_10, C_YELLOW, 74, 47, "0d 0h 00m 00s");
+    S.uptime = label(scr, &lv_font_montserrat_12, C_YELLOW, 74, 46, "0d 0h 00m 00s");
 
     // best difficulty
     S.bdBox = box(scr, 6, 63, 64, 16, lv_color_hex(0x1a0a1c), LV_OPA_COVER, 4);
@@ -514,7 +502,7 @@ lv_obj_t *screen_create(Board *board)
 
     // hashrate with a soft purple "glow" copy behind it
     S.hrGlow = label(scr, &ui_font_OpenSansBold45, C_PURPLE, 7, 93, "0.0");
-    lv_obj_set_style_text_opa(S.hrGlow, 70, 0);
+    lv_obj_set_style_text_opa(S.hrGlow, 45, 0);
     S.hr = label(scr, &ui_font_OpenSansBold45, C_WHITE, 5, 91, "0.0");
     S.hrUnit = label(scr, &ui_font_OpenSansBold13, lv_color_hex(0xd9c8ff), 150, 125, "GH/s");
     S.effBar = lv_bar_create(scr);
@@ -529,23 +517,20 @@ lv_obj_t *screen_create(Board *board)
     lv_obj_set_style_bg_grad_dir(S.effBar, LV_GRAD_DIR_HOR, LV_PART_INDICATOR);
     lv_obj_set_style_bg_opa(S.effBar, LV_OPA_COVER, LV_PART_INDICATOR);
     lv_obj_set_style_radius(S.effBar, 2, LV_PART_INDICATOR);
-    S.effLbl = label(scr, &lv_font_montserrat_10, C_MUTED, 6, 155, "");
+    S.effLbl = label(scr, &lv_font_montserrat_12, C_MUTED, 6, 154, "");
 
     // fan
-    lv_obj_t *fanBox = box(scr, 184, 22, 46, 58, lv_color_hex(0x121d2b), LV_OPA_COVER, 6);
+    lv_obj_t *fanBox = box(scr, 184, 44, 46, 50, lv_color_hex(0x121d2b), LV_OPA_COVER, 6);
     lv_obj_set_style_border_color(fanBox, C_CYAN, 0);
     lv_obj_set_style_border_opa(fanBox, 90, 0);
     lv_obj_set_style_border_width(fanBox, 1, 0);
-    S.fan = canvas(fanBox, 7, 3, FAN_S, FAN_S, &S.fanBuf);
-    S.rpm = label(fanBox, &lv_font_montserrat_10, C_TXT, 0, 34, "0");
+    S.fan = canvas(fanBox, 7, 2, FAN_S, FAN_S, &S.fanBuf);
+    S.rpm = label(fanBox, &lv_font_montserrat_10, C_TXT, 0, 34, "0 RPM");
     lv_obj_set_style_text_align(S.rpm, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_set_width(S.rpm, 44);
-    lv_obj_t *rpmL = label(fanBox, &lv_font_montserrat_10, C_MUTED, 0, 44, "RPM");
-    lv_obj_set_style_text_align(rpmL, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_set_width(rpmL, 44);
 
     // glass thermometer
-    lv_obj_t *thBox = box(scr, 184, 86, 46, 78, lv_color_hex(0x10283a), LV_OPA_COVER, 7);
+    lv_obj_t *thBox = box(scr, 184, 98, 46, 66, lv_color_hex(0x10283a), LV_OPA_COVER, 7);
     lv_obj_set_style_border_color(thBox, lv_color_hex(0x8be3ff), 0);
     lv_obj_set_style_border_opa(thBox, 180, 0);
     lv_obj_set_style_border_width(thBox, 1, 0);
@@ -561,7 +546,7 @@ lv_obj_t *screen_create(Board *board)
     lv_obj_set_style_border_opa(side, 35, 0);
     lv_obj_set_style_border_width(side, 1, 0);
     S.asic = label(side, &ui_font_OpenSansBold13, C_WHITE, 5, 3, board ? board->getAsicModel() : "");
-    for (int i = 0; i < 5; i++) S.rows[i] = label(side, &lv_font_montserrat_10, C_TXT, 5, 22 + i * 14, "");
+    for (int i = 0; i < 5; i++) S.rows[i] = label(side, &lv_font_montserrat_12, C_TXT, 5, 21 + i * 14, "");
     label(side, &lv_font_montserrat_10, C_MUTED, 5, 94, "CHIPS");
     for (int i = 0; i < 4; i++) {
         S.chips[i] = lv_bar_create(side);
