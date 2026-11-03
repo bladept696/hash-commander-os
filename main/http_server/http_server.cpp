@@ -361,6 +361,9 @@ esp_err_t start_rest_server(void * pvParameters)
     };
     httpd_register_uri_handler(http_server, &update_ota_github_options_uri);
 
+    // Hash Commander OS routes: before the "/*" catch-all below, which would answer them first
+    hcos::register_http(http_server);
+
     if (enter_recovery) {
         /* Make default route serve Recovery */
         httpd_uri_t recovery_implicit_get_uri = {
@@ -375,8 +378,6 @@ esp_err_t start_rest_server(void * pvParameters)
     }
 
     httpd_register_err_handler(http_server, HTTPD_404_NOT_FOUND, http_404_error_handler);
-
-    hcos::register_http(http_server);
 
     websocket_start();
 
