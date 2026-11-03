@@ -13,4 +13,7 @@ namespace hcos {
 // builds the screen; call from the LVGL context (UI::miningScreenInit)
 lv_obj_t *screen_create(Board *board);
 
+// boot splash (logo, version and a filling bar); replaces the stock first splash
+lv_obj_t *splash_create();
+
 } // namespace hcos

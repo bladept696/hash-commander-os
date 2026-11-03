@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "esp_heap_caps.h"
+#include "esp_app_desc.h"
 #include "esp_timer.h"
 
 #include "boards/board.h"
@@ -17,6 +18,7 @@ LV_FONT_DECLARE(ui_font_OpenSansBold14);
 LV_FONT_DECLARE(ui_font_OpenSansBold24);
 LV_FONT_DECLARE(ui_font_OpenSansBold45);
 LV_IMG_DECLARE(hcos_logo);
+LV_IMG_DECLARE(hcos_splash);
 
 namespace hcos {
 
@@ -578,6 +580,53 @@ lv_obj_t *screen_create(Board *board)
     draw_thermo();
     S.lastSeq = share_last();
     lv_timer_create(frame_cb, FRAME_MS, NULL);
+    return scr;
+}
+
+static void bar_anim(void *bar, int32_t v) { lv_bar_set_value((lv_obj_t *) bar, v, LV_ANIM_OFF); }
+
+lv_obj_t *splash_create()
+{
+    lv_obj_t *scr = lv_obj_create(NULL);
+    lv_obj_clear_flag(scr, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_bg_color(scr, C_BG2, 0);
+    lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, 0);
+    lv_obj_t *bg = lv_img_create(scr);
+    lv_img_set_src(bg, &hcos_splash);
+    lv_obj_set_pos(bg, 0, 0);
+
+    // "v0.3.8 · base NerdQAxe++ v1.1.1" (the base version is what comes before "-hcos")
+    char base[24];
+    strlcpy(base, esp_app_get_description()->version, sizeof(base));
+    char *cut = strstr(base, "-hcos");
+    if (cut) *cut = 0;
+    char txt[64];
+    snprintf(txt, sizeof(txt), "v" HCOS_VERSION "  -  base NerdQAxe++ %s", base);
+    lv_obj_t *ver = label(scr, &lv_font_montserrat_10, lv_color_hex(0xb9a6e8), 0, 118, txt);
+    lv_obj_set_width(ver, 320);
+    lv_obj_set_style_text_align(ver, LV_TEXT_ALIGN_CENTER, 0);
+
+    lv_obj_t *bar = lv_bar_create(scr);
+    lv_obj_remove_style_all(bar);
+    lv_obj_set_size(bar, 170, 5);
+    lv_obj_set_pos(bar, 75, 138);
+    lv_obj_set_style_bg_color(bar, C_WHITE, 0);
+    lv_obj_set_style_bg_opa(bar, 30, 0);
+    lv_obj_set_style_radius(bar, 3, 0);
+    lv_obj_set_style_bg_color(bar, C_VIOLET, LV_PART_INDICATOR);
+    lv_obj_set_style_bg_grad_color(bar, C_LIVE, LV_PART_INDICATOR);
+    lv_obj_set_style_bg_grad_dir(bar, LV_GRAD_DIR_HOR, LV_PART_INDICATOR);
+    lv_obj_set_style_bg_opa(bar, LV_OPA_COVER, LV_PART_INDICATOR);
+    lv_obj_set_style_radius(bar, 3, LV_PART_INDICATOR);
+    lv_bar_set_range(bar, 0, 100);
+    lv_anim_t a;
+    lv_anim_init(&a);
+    lv_anim_set_var(&a, bar);
+    lv_anim_set_exec_cb(&a, bar_anim);
+    lv_anim_set_values(&a, 0, 100);
+    lv_anim_set_time(&a, 2800);
+    lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
+    lv_anim_start(&a);
     return scr;
 }
 

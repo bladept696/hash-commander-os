@@ -67,6 +67,12 @@ void UI::splash1ScreenInit(void)
     lv_img_cache_invalidate_src(m_theme->getSplashscreen2());
 
     addInitScreenOverlays();
+
+    // Hash Commander OS: our boot splash instead of the stock first one
+    lv_obj_t *stock = ui_Splash1;
+    ui_Splash1 = hcos::splash_create();
+    lv_obj_del(stock);
+    ui_imgSplash1 = nullptr;
 }
 
 void UI::splash2ScreenInit(void)
