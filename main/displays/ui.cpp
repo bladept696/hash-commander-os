@@ -1,6 +1,7 @@
 #include "global_state.h"
 #include "ui_helpers.h"
 #include "ui.h"
+#include "hcos/hcos_screen.h"
 
 #include "displayDriver.h"
 #include "esp_log.h"
@@ -413,6 +414,10 @@ void UI::miningScreenInit(void)
     // lv_obj_add_event_cb(ui_MiningScreen, ui_event_MiningScreen, LV_EVENT_ALL, NULL);
 
     addMiningScreenOverlays();
+
+    // Hash Commander OS: the neon screen takes the place of the stock one. The stock screen is kept
+    // (never shown) so the display driver can keep writing its labels.
+    ui_MiningScreen = hcos::screen_create(m_board);
 }
 
 void UI::settingsScreenInit(void)

@@ -1,0 +1,16 @@
+// Copyright (C) 2026 bladept696. Part of Hash Commander OS, licensed under the GNU GPL v3 (see LICENSE).
+// Hash Commander OS mining screen (320x170): neon look, animated fan, chart, thermometer, share bubbles
+// and a celebration when a new best difficulty is found. It replaces the stock mining screen; the stock
+// labels are still created (hidden) so the display driver can keep updating them.
+#pragma once
+
+#include "lvgl.h"
+
+class Board;
+
+namespace hcos {
+
+// builds the screen; call from the LVGL context (UI::miningScreenInit)
+lv_obj_t *screen_create(Board *board);
+
+} // namespace hcos

@@ -32,4 +32,9 @@ void on_share_found(int pool, double diff, uint32_t pool_diff, int asic_nr);
 void on_share_sent(int pool);
 void on_share_result(int pool, bool accepted);
 
+// for the screen: last share seq, one share's difficulty and status (1 accepted, 2 rejected, 0 waiting), live clients
+uint32_t share_last();
+bool share_get(uint32_t seq, double *diff, uint8_t *st);
+int live_clients();
+
 } // namespace hcos

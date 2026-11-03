@@ -421,6 +421,33 @@ static void live_task(void *)
     }
 }
 
+uint32_t share_last()
+{
+    return s_seq;
+}
+
+bool share_get(uint32_t seq, double *diff, uint8_t *st)
+{
+    if (!s_ring) {
+        return false;
+    }
+    bool ok = false;
+    xSemaphoreTake(s_lock, portMAX_DELAY);
+    Rec *r = rec_for(seq);
+    if (r) {
+        *diff = r->diff;
+        *st = status_of(*r, uptime_s());
+        ok = true;
+    }
+    xSemaphoreGive(s_lock);
+    return ok;
+}
+
+int live_clients()
+{
+    return count_clients();
+}
+
 // ---------------------------------------------------------------- http
 
 static esp_err_t GET_info(httpd_req_t *req)
