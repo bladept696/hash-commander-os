@@ -233,3 +233,14 @@
     background: rgba(232, 162, 60, 0.12);
   }
 }
+
+.hcos-badge {
+  margin-left: 0.6rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font: 700 12px Consolas, 'JetBrains Mono', monospace;
+  color: #fff;
+  background: linear-gradient(90deg, #5a2bd6, #9b5cff);
+  box-shadow: 0 0 12px rgba(155, 92, 255, 0.55);
+  align-self: center;
+}

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { NbThemeService } from '@nebular/theme';
 import { distinctUntilChanged, map, startWith } from 'rxjs';
 
-type HomeShellMode = 'normal' | 'gaia';
+type HomeShellMode = 'normal' | 'gaia' | 'hcos';
 
 /**
  * Route target for /home: renders the dashboard that belongs to the active theme.
@@ -18,7 +18,7 @@ export class HomeShellComponent {
   readonly mode$ = this.themeService.onThemeChange().pipe(
     map((theme): string => theme?.name),
     startWith(this.themeService.currentTheme),
-    map((name): HomeShellMode => (name === 'gaia' ? 'gaia' : 'normal')),
+    map((name): HomeShellMode => (name === 'gaia' ? 'gaia' : name === 'hcos' ? 'hcos' : 'normal')),
     distinctUntilChanged(),
   );
 

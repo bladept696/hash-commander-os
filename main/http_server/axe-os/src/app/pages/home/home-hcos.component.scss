@@ -1,0 +1,100 @@
+// Hash Commander OS dashboard (neon). Only used by the "HC OS" theme.
+$pink: #ff4fd8;
+$pur: #b14dff;
+$grn: #3dff9a;
+$cy: #4fd6ff;
+$gold: #ffd23f;
+$mut: #8f88a8;
+$mono: Consolas, 'JetBrains Mono', ui-monospace, monospace;
+
+.hc { color: #ece8ff; }
+.hc-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
+.hc-c3 { grid-column: span 3; } .hc-c4 { grid-column: span 4; } .hc-c5 { grid-column: span 5; }
+.hc-c7 { grid-column: span 7; } .hc-c8 { grid-column: span 8; }
+@media (max-width: 1200px) { .hc-c3, .hc-c4, .hc-c5 { grid-column: span 6; } .hc-c7, .hc-c8 { grid-column: span 12; } }
+@media (max-width: 760px) { .hc-c3, .hc-c4, .hc-c5, .hc-c7, .hc-c8 { grid-column: span 12; } }
+
+.hc-card {
+  position: relative; overflow: hidden; border-radius: 16px; padding: 14px 16px;
+  background: linear-gradient(160deg, #151127, #0e0b19); border: 1px solid rgba(255, 255, 255, 0.08);
+  h4 { margin: 0 0 10px; font: 700 11px $mono; letter-spacing: 0.14em; color: $mut; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+  h4 em { font-style: normal; color: #c9b6ff; letter-spacing: 0; text-transform: none; display: flex; align-items: center; gap: 6px; }
+}
+.hc-mut { color: $mut; font-size: 13px; padding: 10px 0; }
+
+// hashrate
+.hc-hero { display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: center; }
+@media (max-width: 760px) { .hc-hero { grid-template-columns: 1fr; justify-items: center; } }
+.hc-ring { position: relative; width: 160px; height: 160px;
+  svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  &__bg { fill: none; stroke: rgba(255, 255, 255, 0.07); stroke-width: 12; }
+  &__fg { fill: none; stroke: url(#hcRing); stroke-width: 12; stroke-linecap: round; filter: drop-shadow(0 0 6px $pink); transition: stroke-dasharray 0.8s ease; }
+  &__v { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    b { font: 800 32px 'Segoe UI', sans-serif; color: #fff; text-shadow: 0 0 14px $pur; }
+    small { font: 700 11px $mono; color: #d9c8ff; letter-spacing: 0.15em; } }
+}
+.hc-big { font: 800 58px 'Segoe UI', sans-serif; letter-spacing: -1px; color: #fff; text-shadow: 0 0 22px rgba(177, 77, 255, 0.7); line-height: 1.05;
+  small { font: 700 18px $mono; color: #d9c8ff; margin-left: 6px; } }
+.hc-sub { font: 600 13px $mono; color: $mut; b { color: $grn; } }
+.hc-bar { height: 8px; border-radius: 9px; background: rgba(255, 255, 255, 0.07); margin-top: 12px; overflow: hidden;
+  i { display: block; height: 100%; background: linear-gradient(90deg, $cy, $pur, $pink); box-shadow: 0 0 10px $pink; transition: width 0.8s ease; } }
+.hc-kv { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap;
+  div { flex: 1; min-width: 100px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 10px; padding: 8px 10px; font: 600 11px $mono; color: $mut; }
+  b { display: block; font: 800 16px 'Segoe UI', sans-serif; color: #fff; margin-top: 2px; }
+  b.g { color: $grn; }
+  &--gold div { border-color: rgba(255, 210, 63, 0.2); } }
+
+// best difficulty
+.hc-best { background: linear-gradient(160deg, #2a1d05, #120c03); border-color: rgba(255, 210, 63, 0.35);
+  &__num { font: 800 46px 'Segoe UI', sans-serif; color: $gold; text-shadow: 0 0 18px rgba(255, 176, 32, 0.7); small { font-size: 20px; } }
+  &__sub { font: 600 12px $mono; color: #c9a46a; margin-top: 2px; } }
+.hc-star { position: absolute; right: 10px; top: -6px; font-size: 70px; opacity: 0.12; color: $gold; animation: hcTwinkle 3s ease-in-out infinite; }
+@keyframes hcTwinkle { 50% { opacity: 0.25; transform: rotate(8deg) scale(1.05); } }
+
+// live feed
+.hc-dot { width: 8px; height: 8px; border-radius: 50%; background: $mut; display: inline-block;
+  &.on { background: #21ffb0; box-shadow: 0 0 8px #21ffb0; animation: hcPulse 1.6s ease-in-out infinite; } }
+@keyframes hcPulse { 50% { opacity: 0.35; } }
+.hc-feed { font: 600 12.5px $mono; line-height: 1.75; background: #04060a; border: 1px solid #1b3a25; border-radius: 10px; padding: 8px 12px; height: 252px; overflow: hidden; color: #7dffb0;
+  div:nth-child(n + 10) { opacity: 0.55; } div:nth-child(n + 12) { opacity: 0.3; }
+  .bad { color: #ff6b6b; }
+  .best { color: $gold; text-shadow: 0 0 8px rgba(255, 210, 63, 0.55); }
+  .new { background: rgba(33, 255, 160, 0.09); border-radius: 5px; margin: 0 -6px; padding: 0 6px; animation: hcIn 0.5s ease-out; } }
+@keyframes hcIn { from { transform: translateY(-8px); opacity: 0; } }
+
+// chips
+.hc-chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; height: 160px; }
+.hc-chip { position: relative; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 10px; overflow: hidden;
+  i { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, $grn, #14a85e); box-shadow: 0 0 14px rgba(61, 255, 154, 0.5); transition: height 0.8s ease; }
+  &.low i { background: linear-gradient(180deg, #ffc04d, #c77a00); box-shadow: 0 0 14px rgba(255, 192, 77, 0.5); }
+  span { position: absolute; left: 0; right: 0; top: 6px; text-align: center; font: 700 10px $mono; color: $mut; z-index: 1; }
+  b { position: absolute; left: 0; right: 0; bottom: 8px; text-align: center; font: 800 14px 'Segoe UI', sans-serif; color: #06100a; z-index: 1; } }
+
+// temperatures and fans
+.hc-therm { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+@media (max-width: 760px) { .hc-therm { grid-template-columns: repeat(2, 1fr); } }
+.hc-glass { position: relative; height: 150px; border-radius: 14px; overflow: hidden; text-align: center;
+  background: rgba(95, 212, 255, 0.08); border: 1px solid rgba(139, 227, 255, 0.4); box-shadow: inset 0 0 18px rgba(139, 227, 255, 0.2);
+  .liq { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, #9ef2ff, #1e8fff); transition: height 1s ease;
+    &::before { content: ''; position: absolute; left: -20px; right: -20px; top: -6px; height: 12px;
+      background: radial-gradient(ellipse at 50% 100%, #9ef2ff 60%, transparent 62%) 0 0 / 24px 12px repeat-x; animation: hcWave 2s linear infinite; } }
+  &.hot { background: rgba(255, 157, 74, 0.08); border-color: rgba(255, 176, 106, 0.4);
+    .liq { background: linear-gradient(180deg, #ffd27a, #ff7a1a); &::before { background: radial-gradient(ellipse at 50% 100%, #ffd27a 60%, transparent 62%) 0 0 / 24px 12px repeat-x; } } }
+  b { position: relative; z-index: 1; display: block; margin-top: 12px; font: 800 24px 'Segoe UI', sans-serif; color: #fff; text-shadow: 0 0 8px $cy; }
+  small { position: relative; z-index: 1; font: 700 10.5px $mono; color: #dff; } }
+@keyframes hcWave { to { background-position: 24px 0; } }
+.hc-fan { height: 150px; border-radius: 14px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(79, 214, 255, 0.3);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font: 700 11px $mono; color: $mut;
+  svg { width: 56px; height: 56px; animation: hcSpin 1s linear infinite; }
+  .ring { fill: #0b1520; stroke: $cy; stroke-width: 1; } .blades { fill: #8be3ff; } .hub { fill: #dff; }
+  b { font: 800 18px 'Segoe UI', sans-serif; color: #fff; } }
+@keyframes hcSpin { to { transform: rotate(360deg); } }
+
+// rows, pool, HC OS
+.hc-row { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font: 600 12.5px $mono; color: $mut;
+  b { color: #fff; text-align: right; word-break: break-all; } b.g { color: $grn; } &:last-of-type { border-bottom: 0; } }
+.hc-os { background: linear-gradient(140deg, #1d1238, #0f0b1c); border-color: rgba(177, 77, 255, 0.45); box-shadow: 0 0 30px rgba(177, 77, 255, 0.15); }
+.hc-btns { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.hc-btn { font: 700 12.5px 'Segoe UI', sans-serif; padding: 8px 14px; border-radius: 9px; border: 1px solid rgba(177, 77, 255, 0.5); color: #e3d2ff; background: rgba(177, 77, 255, 0.1); cursor: pointer;
+  &:hover { background: rgba(177, 77, 255, 0.2); }
+  &.red { border-color: rgba(255, 79, 122, 0.5); color: #ffb3c4; background: rgba(255, 79, 122, 0.08); } }

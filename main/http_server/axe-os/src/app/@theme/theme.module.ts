@@ -2,6 +2,7 @@ import { CommonModule } from "@angular/common";
 import { ModuleWithProviders, NgModule } from "@angular/core";
 import { CORPORATE_THEME } from "./styles/theme.corporate";
 import { GAIA_THEME } from "./styles/theme.gaia";
+import { HCOS_THEME } from "./styles/theme.hcos";
 import {
     NbActionsModule,
     NbLayoutModule,
@@ -122,7 +123,7 @@ const PIPES = [
             {
               name: 'cosmic',
             },
-            [ CORPORATE_THEME, GAIA_THEME ],
+            [ CORPORATE_THEME, GAIA_THEME, HCOS_THEME ],
           ).providers || [],
         ],
       };

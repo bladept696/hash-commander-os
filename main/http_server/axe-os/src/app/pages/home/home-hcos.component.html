@@ -1,0 +1,141 @@
+<ng-template #loading>
+  <h4>{{ 'COMMON.LOADING' | translate }}</h4>
+</ng-template>
+
+<ng-template #shutdown>
+  <h4>{{ 'COMMON.SHUTDOWN' | translate }}</h4>
+</ng-template>
+
+<div class="hc" *ngIf="info$ | async as info; else loading">
+  <div *ngIf="!info.system.shutdown; else shutdown" class="hc-grid">
+
+    <!-- hashrate -->
+    <section class="hc-card hc-c7">
+      <h4>Hashrate <em>agora</em></h4>
+      <div class="hc-hero">
+        <ng-container *ngIf="expectedHashRate$ | async as exp; else noExp">
+          <div class="hc-ring">
+            <svg viewBox="0 0 170 170">
+              <defs><linearGradient id="hcRing" x1="0" x2="1" y1="1" y2="0"><stop offset="0" stop-color="#4fd6ff"/><stop offset=".55" stop-color="#b14dff"/><stop offset="1" stop-color="#ff4fd8"/></linearGradient></defs>
+              <circle cx="85" cy="85" r="70" class="hc-ring__bg"/>
+              <circle cx="85" cy="85" r="70" class="hc-ring__fg" [attr.stroke-dasharray]="ringDash(info.performance.hashRate / exp * 100)"/>
+            </svg>
+            <div class="hc-ring__v"><b>{{ clamp100(info.performance.hashRate / exp * 100) | number:'1.0-0' }}%</b><small>DO PREVISTO</small></div>
+          </div>
+        </ng-container>
+        <ng-template #noExp><div class="hc-ring"></div></ng-template>
+        <div>
+          <div class="hc-big">{{ info.performance.hashRate | number:'1.1-1' }}<small>GH/s</small></div>
+          <div class="hc-sub">
+            <ng-container *ngIf="expectedHashRate$ | async as exp">previsto {{ exp | number:'1.0-0' }} GH/s · </ng-container>
+            média 1 h <b>{{ info.performance.hashRate1h / 1000 | number:'1.2-2' }} TH/s</b>
+          </div>
+          <div class="hc-bar" *ngIf="expectedHashRate$ | async as exp"><i [style.width.%]="clamp100(info.performance.hashRate / exp * 100)"></i></div>
+          <div class="hc-kv">
+            <div>Frequência<b>{{ info.performance.frequency }} MHz</b></div>
+            <div>Eficiência<b>{{ info.power.watts / (info.performance.hashRate / 1000) | number:'1.2-2' }} J/TH</b></div>
+            <div>Consumo<b>{{ info.power.watts | number:'1.1-1' }} W</b></div>
+            <div>ASIC<b>{{ info.power.coreVoltageActual | number:'1.2-2' }} V</b></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- best difficulty -->
+    <section class="hc-card hc-c5 hc-best">
+      <span class="hc-star">★</span>
+      <h4>Melhor dificuldade <em>de sempre</em></h4>
+      <div class="hc-best__num">
+        <ng-container *ngIf="splitHumanReadable(info.performance.bestDiff | humanReadable) as bd">{{ bd.value }}<small *ngIf="bd.unit"> {{ bd.unit }}</small></ng-container>
+      </div>
+      <div class="hc-best__sub">
+        melhor desde que ligou:
+        <ng-container *ngIf="splitHumanReadable(info.performance.bestSessionDiff | humanReadable) as sd">{{ sd.value }} {{ sd.unit }}</ng-container>
+        · ligada há {{ formatUptime(info.system.uptime) }}
+      </div>
+      <div class="hc-kv hc-kv--gold">
+        <div>Shares<b>{{ (info.performance.sharesAccepted ?? 0) | number:'1.0-0' }}</b></div>
+        <div>Rejeitadas<b class="g">{{ (info.performance.sharesRejected ?? 0) | number:'1.0-0' }}</b></div>
+        <div>Diff da pool<b>{{ getPoolInfo().poolDifficulty | number:'1.0-0' }}</b></div>
+      </div>
+    </section>
+
+    <!-- chart (the same chart as the default dashboard, in pink) -->
+    <section class="hc-card hc-c8">
+      <h4>Gráfico <em>hashrate · ASIC °C · VR °C</em></h4>
+      <div class="chart-canvas">
+        <div class="chart-canvas__wrap chart-canvas__wrap--tall">
+          <canvas #myChart></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- live shares -->
+    <section class="hc-card hc-c4">
+      <h4>Shares ao vivo <em><i class="hc-dot" [class.on]="live"></i>{{ live ? 'ligado' : 'a ligar…' }}</em></h4>
+      <div class="hc-feed">
+        <div *ngFor="let s of shares" [class.new]="s.isNew" [class.bad]="s.st === 2" [class.best]="s.diff >= bestSeen && s.diff > 0">
+          {{ time(s.ts) }} ▸ {{ diff(s.diff) }} {{ s.diff >= bestSeen && s.diff > 0 ? '★ melhor' : (s.st === 2 ? '✗ ' : s.st === 1 ? '✓ ' : '… ') + stLabel(s.st) }}
+        </div>
+        <div *ngIf="!shares.length" class="hc-mut">À espera da primeira share…</div>
+      </div>
+    </section>
+
+    <!-- chips -->
+    <section class="hc-card hc-c4" *ngIf="chips(info) as cs">
+      <h4>Chips <em>hashrate de cada um</em></h4>
+      <div class="hc-chips" *ngIf="cs.length; else noChips">
+        <div class="hc-chip" *ngFor="let c of cs; let i = index" [class.low]="chipLow(c, cs)">
+          <span>#{{ i + 1 }}</span><i [style.height.%]="chipPct(c, cs)"></i><b>{{ c / 1000 | number:'1.2-2' }}T</b>
+        </div>
+      </div>
+      <ng-template #noChips><div class="hc-mut">Sem leitura por chip.</div></ng-template>
+    </section>
+
+    <!-- temperatures and fans -->
+    <section class="hc-card hc-c5">
+      <h4>Temperaturas e ventoinhas</h4>
+      <div class="hc-therm">
+        <div class="hc-glass" [class.hot]="tempHot(info.thermal.asicTemp)"><div class="liq" [style.height.%]="tempPct(info.thermal.asicTemp)"></div><b>{{ info.thermal.asicTemp | number:'1.1-1' }}°</b><small>ASIC</small></div>
+        <div class="hc-glass" [class.hot]="tempHot(info.thermal.vrTemp)"><div class="liq" [style.height.%]="tempPct(info.thermal.vrTemp)"></div><b>{{ info.thermal.vrTemp | number:'1.1-1' }}°</b><small>VR · int {{ info.thermal.vrTempInt | number:'1.1-1' }}°</small></div>
+        <div class="hc-fan" *ngFor="let f of info.thermal.fans; let i = index">
+          <svg viewBox="0 0 30 30" [style.animation-duration]="fanSpin(f.rpm)"><circle cx="15" cy="15" r="14" class="ring"/><g class="blades"><path d="M15 15 C12 6 18 3 20 6 C21 9 18 12 15 15Z"/><path d="M15 15 C24 12 27 18 24 20 C21 21 18 18 15 15Z"/><path d="M15 15 C18 24 12 27 10 24 C9 21 12 18 15 15Z"/><path d="M15 15 C6 18 3 12 6 10 C9 9 12 12 15 15Z"/></g><circle cx="15" cy="15" r="3" class="hub"/></svg>
+          <b>{{ f.rpm | number:'1.0-0' }}</b>{{ i === 0 ? 'ASIC' : 'VR' }} · {{ f.speed }}%
+        </div>
+      </div>
+    </section>
+
+    <!-- power -->
+    <section class="hc-card hc-c3">
+      <h4>Energia</h4>
+      <div class="hc-row"><span>Entrada</span><b>{{ info.power.voltage | number:'1.1-1' }} V</b></div>
+      <div class="hc-row"><span>Corrente</span><b>{{ info.power.currentA | number:'1.2-2' }} A</b></div>
+      <div class="hc-row"><span>Consumo</span><b>{{ info.power.watts | number:'1.1-1' }} W</b></div>
+      <div class="hc-row"><span>Tensão ASIC</span><b>{{ info.power.coreVoltageActual | number:'1.2-2' }} V</b></div>
+      <div class="hc-row"><span>Eficiência</span><b class="g">{{ info.power.watts / (info.performance.hashRate / 1000) | number:'1.2-2' }} J/TH</b></div>
+    </section>
+
+    <!-- pool -->
+    <section class="hc-card hc-c4" *ngIf="getPoolInfo() as p">
+      <h4>Pool <em>{{ p.connected ? 'ligada' : 'desligada' }}</em></h4>
+      <div class="hc-row"><span>Host</span><b>{{ p.host }}:{{ p.port }}</b></div>
+      <div class="hc-row"><span>Aceites / rejeitadas</span><b>{{ p.accepted | number:'1.0-0' }} / {{ p.rejected | number:'1.0-0' }}</b></div>
+      <div class="hc-row"><span>Ping</span><b class="g">{{ p.pingRtt | number:'1.1-1' }} ms</b></div>
+      <div class="hc-row"><span>Perda</span><b class="g">{{ p.pingLoss | number:'1.2-2' }} %</b></div>
+    </section>
+
+    <!-- Hash Commander OS -->
+    <section class="hc-card hc-c4 hc-os">
+      <h4>Hash Commander OS <em>{{ hcInfo?.hcos || '' }}</em></h4>
+      <div class="hc-row"><span>Ligação à app</span><b [class.g]="(hcInfo?.liveClients || 0) > 0">{{ (hcInfo?.liveClients || 0) > 0 ? '● ao vivo' : '—' }}</b></div>
+      <div class="hc-row"><span>Proteção de arranque</span><b [class.g]="hcInfo?.bootGuard?.mining">{{ hcInfo?.bootGuard?.mining ? '✓ a minerar' : 'a confirmar…' }}</b></div>
+      <div class="hc-row"><span>Shares registadas</span><b>{{ hcInfo?.shareLog?.total | number:'1.0-0' }}</b></div>
+      <div class="hc-row"><span>Se falhar volta para</span><b>{{ hcInfo?.bootGuard?.fallback || '—' }}</b></div>
+      <div class="hc-btns">
+        <button type="button" class="hc-btn" (click)="exportShares()">⬇ Exportar shares</button>
+        <button type="button" class="hc-btn red" (click)="backToOfficial()">↩ Voltar ao oficial</button>
+      </div>
+    </section>
+
+  </div>
+</div>

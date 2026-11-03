@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HomeComponent } from './home.component';
 import { HomeGaiaComponent } from './home-gaia.component';
+import { HomeHcosComponent } from './home-hcos.component';
 import { HomeShellComponent } from './home-shell.component';
 import { NbCardModule, NbTooltipModule, NbBadgeModule, NbAlertModule, NbButtonModule, NbThemeModule, NbIconModule, NbCheckboxModule } from '@nebular/theme';
 import { SystemService } from '../../services/system.service';
@@ -15,6 +16,7 @@ import { AsicTempBarsModule } from 'src/app/components/asic-temp-bars/asic-temp-
   declarations: [
     HomeComponent,
     HomeGaiaComponent,
+    HomeHcosComponent,
     HomeShellComponent,
   ],
   imports: [

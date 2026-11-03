@@ -134,3 +134,21 @@ mat-icon{
 
 /* Importing Bootstrap SCSS file. */
 @import 'bootstrap/scss/bootstrap';
+
+/* ── Hash Commander OS: neon background with a faint grid ─────────────────── */
+.nb-theme-hcos {
+  nb-layout .layout {
+    background:
+      radial-gradient(circle at 12% 0%, rgba(90, 43, 214, 0.35) 0%, transparent 42%),
+      radial-gradient(circle at 100% 100%, rgba(0, 80, 95, 0.35) 0%, transparent 42%),
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 40px),
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 40px),
+      #07060d;
+  }
+  nb-card {
+    background: linear-gradient(160deg, #151127, #0e0b19);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  nb-menu .menu-items { padding: 0.6rem; }
+  nb-menu .menu-item + .menu-item { margin-top: 0.3rem; }
+}

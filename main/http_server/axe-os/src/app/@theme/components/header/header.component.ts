@@ -29,6 +29,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     { value: 'default',   name: 'Light' },
     { value: 'dark',      name: 'Dark' },
     { value: 'gaia', name: 'Gaia' },
+    { value: 'hcos', name: 'HC OS' },
   ];
 
   currentTheme = 'cosmic';  // Default theme if none is found in localStorage
@@ -84,7 +85,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       });
 
     // 1) If available, use saved theme
-    const savedTheme = localStorage.getItem('selectedTheme');
+    let savedTheme = localStorage.getItem('selectedTheme');
     if (savedTheme && this.isThemeValid(savedTheme)) {
       this.applyTheme(savedTheme); // no saving here
     }
@@ -99,6 +100,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
       // Prefer backend default theme if no valid saved theme is present
       const backendTheme = info?.defaultTheme ?? '';
+      // Hash Commander OS: switch to its neon theme once per browser, even over a theme saved before;
+      // after that the person's own choice is kept
+      if (backendTheme === 'hcos' && localStorage.getItem('hcosThemeApplied') !== '1') {
+        localStorage.setItem('hcosThemeApplied', '1');
+        savedTheme = '';
+      }
       if ((!savedTheme || !this.isThemeValid(savedTheme)) && this.isThemeValid(backendTheme)) {
         this.applyTheme(backendTheme);
       } else if (!savedTheme) {
