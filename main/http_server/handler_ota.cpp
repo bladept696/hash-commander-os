@@ -1,4 +1,5 @@
 #include "esp_ota_ops.h"
+#include "hcos/hcos.h"
 #include "esp_http_server.h"
 #include "esp_log.h"
 
@@ -163,6 +164,7 @@ esp_err_t POST_OTA_update(httpd_req_t *req)
     free(buf);
 
     // Validate and switch to new OTA image and reboot
+    hcos::remember_running_partition();
     if (esp_ota_end(ota_handle) != ESP_OK || esp_ota_set_boot_partition(ota_partition) != ESP_OK) {
         httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Validation / Activation Error");
         return ESP_FAIL;

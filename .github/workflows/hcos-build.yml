@@ -1,0 +1,72 @@
+# Hash Commander OS: builds the NerdQAxe++ firmware with the Hash Commander additions (main/hcos).
+# Runs on every push to the hcos branch and on tags hcos-v*; the files stay as artifacts of the run.
+# A tag also creates a GitHub release with the binaries.
+name: Build Hash Commander OS
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['hcos']
+    tags: ['hcos-v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      BOARD: NERDQAXEPLUS2
+      LABEL: NerdQAxe++
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        fetch-depth: 0
+
+    - name: Version
+      run: |
+        set -e
+        HCOS=$(sed -n 's/^#define HCOS_VERSION "\(.*\)"/\1/p' main/hcos/hcos.h)
+        BASE=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || echo base)
+        VERSION="${BASE}-hcos${HCOS}"
+        echo "VERSION=${VERSION}" >> $GITHUB_ENV
+        echo "HCOS=${HCOS}" >> $GITHUB_ENV
+        echo "${VERSION}" > version.txt
+        COMMIT=$(git rev-parse --short HEAD)
+        sed -e "s|__COMMIT__|${COMMIT}|g" -e "s|__VERSION__|${VERSION}|g" -i ./main/http_server/axe-os/src/app/app.module.ts
+        for l in de en es fr it pl ro da zh-CN; do
+          mv "./main/http_server/axe-os/src/assets/i18n/${l}.json" "./main/http_server/axe-os/src/assets/i18n/${l}.${COMMIT}.json"
+        done
+        echo "version ${VERSION}"
+
+    - name: Build
+      run: |
+        docker run --rm --user root -e BOARD=$BOARD -v $PWD:/home/builder/project shufps/esp-idf-builder:5.3.6 idf.py set-target esp32s3
+        docker run --rm --user root -e BOARD=$BOARD -v $PWD:/home/builder/project shufps/esp-idf-builder:5.3.6 idf.py build
+        docker run --rm --user root -v $PWD:/home/builder/project shufps/esp-idf-builder:5.3.6 esptool.py --chip esp32s3 merge_bin \
+          --flash_mode dio --flash_size 16MB --flash_freq 80m \
+          0x0 build/bootloader/bootloader.bin 0x8000 build/partition_table/partition-table.bin 0x10000 build/esp-miner.bin \
+          0x410000 build/www.bin 0xf10000 build/ota_data_initial.bin \
+          -o "hcos-factory-${LABEL}-${VERSION}.bin"
+        sudo mkdir -p out
+        sudo cp build/esp-miner.bin "out/hcos-${LABEL}-${VERSION}.bin"
+        sudo cp build/www.bin "out/hcos-www-${VERSION}.bin"
+        sudo cp "hcos-factory-${LABEL}-${VERSION}.bin" out/
+        sudo cp build/esp-miner.elf "out/hcos-${LABEL}-${VERSION}.elf"
+        ls -la out
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: hcos-${{ env.VERSION }}
+        path: out/*
+        retention-days: 30
+
+    - name: Release
+      if: startsWith(github.ref, 'refs/tags/hcos-v')
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release create "${GITHUB_REF_NAME}" --title "Hash Commander OS ${HCOS}" --prerelease \
+          --notes "Hash Commander OS ${HCOS} for the NerdQAxe++, based on the NerdQAxe++ firmware. See README-HCOS.md." \
+          out/*.bin

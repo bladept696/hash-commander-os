@@ -9,6 +9,7 @@
 #include "esp_http_client.h"
 #include "esp_log.h"
 #include "esp_ota_ops.h"
+#include "hcos/hcos.h"
 #include "esp_partition.h"
 
 #include "global_state.h"
@@ -242,6 +243,7 @@ esp_err_t FactoryOTAUpdate::do_firmware_update(esp_http_client_handle_t client)
     }
 
     // Validate and switch to new OTA image and reboot later
+    hcos::remember_running_partition();
     if (esp_ota_end(ota_handle) != ESP_OK || esp_ota_set_boot_partition(ota_partition) != ESP_OK) {
         return ESP_FAIL;
     }

@@ -75,6 +75,7 @@ SRCS
     "./tasks/create_jobs_sv2.cpp"
     "./tasks/mining_info_v2.cpp"
     "./tasks/asic_result_task.cpp"
+    "./hcos/hcos.cpp"
     "./tasks/influx_task.cpp"
     "./tasks/ping_task.cpp"
     "./tasks/power_management_task.cpp"

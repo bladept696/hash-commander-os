@@ -48,6 +48,7 @@
 #include "utils.h"
 #include "network/mdns_service.h"
 #include "network/network_manager.h"
+#include "hcos/hcos.h"
 
 #define STRATUM_WATCHDOG_TIMEOUT_SECONDS 3600
 
@@ -238,6 +239,9 @@ extern "C" void app_main(void)
     ESP_LOGI(TAG, "Welcome to the Nerd*Axe - hack the planet!");
     ESP_ERROR_CHECK(nvs_flash_init());
 
+    // Hash Commander OS: go back to the previous firmware if this one keeps failing
+    hcos::boot_guard();
+
     // shows and saves last reset reason
     esp_reset_reason_t reason = SYSTEM_MODULE.showLastResetReason();
 
@@ -426,6 +430,7 @@ extern "C" void app_main(void)
             // OTA writes SPI flash which disables cache — must NOT run on PSRAM stack
             xTaskCreate(FACTORY_OTA_UPDATER.taskWrapper, "ota updater", 8192, (void *) &FACTORY_OTA_UPDATER, 1, NULL);
             xTaskCreatePSRAM(StratumManager::taskWrapper, "stratum manager", 8192, (void *) STRATUM_MANAGER, 5, NULL);
+            hcos::start();
 
             if (board->hasHashrateCounter()) {
                 HASHRATE_MONITOR.start(board, board->getAsics());

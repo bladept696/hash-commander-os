@@ -1,5 +1,6 @@
 #include "stratum_task_v2.h"
 #include "stratum_manager.h"
+#include "hcos/hcos.h"
 
 #include <cstring>
 #include <cstdlib>
@@ -664,6 +665,7 @@ void StratumTaskV2::handleSubmitSharesSuccess(const uint8_t *payload, uint32_t l
         }
         for (uint32_t i = 0; i < accepted_count; i++) {
             m_manager->acceptedShare(m_index);
+            hcos::on_share_result(m_index, true);
         }
         m_manager->m_lastSubmitResponseTimestamp = esp_timer_get_time();
     }
@@ -677,6 +679,7 @@ void StratumTaskV2::handleSubmitSharesError(const uint8_t *payload, uint32_t len
                                        error_code, sizeof(error_code)) == 0) {
         ESP_LOGW(m_tag, "Share rejected: %s", error_code);
         m_manager->rejectedShare(m_index);
+        hcos::on_share_result(m_index, false);
         m_manager->m_lastSubmitResponseTimestamp = esp_timer_get_time();
     }
 }

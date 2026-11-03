@@ -27,6 +27,7 @@
 #include "handler_file.h"
 #include "handler_alert.h"
 #include "handler_otp.h"
+#include "hcos/hcos.h"
 #include "macros.h"
 
 #pragma GCC diagnostic error "-Wall"
@@ -150,7 +151,7 @@ esp_err_t start_rest_server(void * pvParameters)
 
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.uri_match_fn = httpd_uri_match_wildcard;
-    config.max_uri_handlers = 50;
+    config.max_uri_handlers = 60;
     config.lru_purge_enable = true;
     config.max_open_sockets = 10;
     config.stack_size = 12288;
@@ -374,6 +375,8 @@ esp_err_t start_rest_server(void * pvParameters)
     }
 
     httpd_register_err_handler(http_server, HTTPD_404_NOT_FOUND, http_404_error_handler);
+
+    hcos::register_http(http_server);
 
     websocket_start();
 

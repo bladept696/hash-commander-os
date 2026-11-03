@@ -10,6 +10,7 @@
 #include "boards/board.h"
 
 #include "simple_ring64.hpp"
+#include "hcos/hcos.h"
 #include "utils.h"
 
 static const char *TAG = "asic_result";
@@ -124,6 +125,7 @@ void ASIC_result_task(void *pvParameters)
 
         // send duplicates to the server (they will get rejected and counted as rejected)
         if (nonce_diff >= job->pool_diff) {
+            hcos::on_share_found(job->pool_id, nonce_diff, job->pool_diff, asic_result.asic_nr);
             STRATUM_MANAGER->submitShare(job->pool_id, job->jobid, job->extranonce2, job->ntime, asic_result.nonce,
                                     asic_result.rolled_version, job->version);
         }

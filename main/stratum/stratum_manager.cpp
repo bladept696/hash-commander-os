@@ -8,6 +8,7 @@
 #include "esp_task_wdt.h"
 #include "esp_timer.h"
 #include "esp_wifi.h"
+#include "hcos/hcos.h"
 #include "global_state.h"
 #include "lwip/dns.h"
 
@@ -232,9 +233,11 @@ void StratumManager::dispatch(int pool, JsonDocument &doc)
         if (m_stratum_api_v1_message.response_success) {
             ESP_LOGI(tag, "message result accepted");
             acceptedShare(pool);
+            hcos::on_share_result(pool, true);
         } else {
             ESP_LOGW(tag, "message result rejected");
             rejectedShare(pool);
+            hcos::on_share_result(pool, false);
         }
         m_lastSubmitResponseTimestamp = esp_timer_get_time();
         break;
@@ -270,6 +273,7 @@ void StratumManager::submitShare(int pool, const char *jobid, const char *extran
         ESP_LOGE(m_tag, "selected pool not connected");
         return;
     }
+    hcos::on_share_sent(pool);
     m_stratumTasks[pool]->submitShare(jobid, extranonce_2, ntime, nonce, version_rolled, version_base);
 }
 
