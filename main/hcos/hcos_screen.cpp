@@ -20,8 +20,8 @@ LV_FONT_DECLARE(ui_font_OpenSansBold45);
 namespace hcos {
 
 // ---------------------------------------------------------------- colours
-#define C_BG1 lv_color_hex(0x1a1030)
-#define C_BG2 lv_color_hex(0x07070d)
+#define C_BG1 lv_color_hex(0x0e0820)
+#define C_BG2 lv_color_hex(0x030306)
 #define C_GREEN lv_color_hex(0x3dff9a)
 #define C_LIVE lv_color_hex(0x21ffb0)
 #define C_PINK lv_color_hex(0xff4fd8)
@@ -138,7 +138,7 @@ static void fmt_diff(char *buf, size_t n, double d)
 // ---------------------------------------------------------------- drawing on the canvases
 static void draw_chart()
 {
-    lv_canvas_fill_bg(S.chart, lv_color_hex(0x161226), LV_OPA_COVER);
+    lv_canvas_fill_bg(S.chart, lv_color_hex(0x0b0716), LV_OPA_COVER);
     if (S.histN < 2) {
         return;
     }
@@ -437,15 +437,13 @@ static void frame_cb(lv_timer_t *)
     lv_obj_set_style_bg_opa(S.chartDot, 150 + (int) (105 * p), 0);
 
     // a white shine runs over the title letters every 3 s
-    float shine = (S.frame % 45) / 45.0f * 12 - 2;
+    float shine = (S.frame % 90) / 90.0f * 24 - 2;
     for (int i = 0; i < 8; i++) {
         lv_color_t base = i < 4 ? C_GREEN : C_PINK;
         float k = 1 - fabsf(i - shine) / 1.5f;
-        lv_obj_set_style_text_color(S.letters[i], mix(base, C_WHITE, k * 0.85f), 0);
+        lv_obj_set_style_text_color(S.letters[i], mix(base, C_WHITE, k * 0.45f), 0);
     }
 
-    // scan line every 3 s
-    lv_obj_set_y(S.scan, (S.frame % 45) * 4 - 6);
 }
 
 // ---------------------------------------------------------------- build
@@ -461,18 +459,20 @@ lv_obj_t *screen_create(Board *board)
     lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, 0);
 
     // glows and grid (static)
-    lv_obj_t *g1 = box(scr, -60, -80, 220, 160, lv_color_hex(0x5a2bd6), 45, LV_RADIUS_CIRCLE);
-    lv_obj_t *g2 = box(scr, 230, 110, 160, 120, lv_color_hex(0x00505f), 60, LV_RADIUS_CIRCLE);
+    lv_obj_t *g1 = box(scr, -60, -80, 220, 160, lv_color_hex(0x5a2bd6), 22, LV_RADIUS_CIRCLE);
+    lv_obj_t *g2 = box(scr, 230, 110, 160, 120, lv_color_hex(0x00505f), 30, LV_RADIUS_CIRCLE);
     (void) g1;
     (void) g2;
-    for (int x = 16; x < 320; x += 16) box(scr, x, 0, 1, 170, C_WHITE, 8, 0);
-    for (int y = 16; y < 170; y += 16) box(scr, 0, y, 320, 1, C_WHITE, 8, 0);
+    for (int x = 16; x < 320; x += 16) box(scr, x, 0, 1, 170, C_WHITE, 4, 0);
+    for (int y = 16; y < 170; y += 16) box(scr, 0, y, 320, 1, C_WHITE, 4, 0);
 
     // top: live + IP + wifi
     S.liveDot = box(scr, 6, 6, 5, 5, C_LIVE, LV_OPA_COVER, LV_RADIUS_CIRCLE);
     S.liveLbl = label(scr, &lv_font_montserrat_10, lv_color_hex(0x5dffb0), 14, 2, "HC OS ao vivo");
-    lv_obj_t *ipBox = box(scr, 150, 3, 96, 14, lv_color_hex(0xe9eef4), LV_OPA_COVER, 3);
-    S.ip = label(ipBox, &lv_font_montserrat_10, lv_color_hex(0x222222), 5, 1, "0.0.0.0");
+    lv_obj_t *ipBox = box(scr, 146, 2, 100, 15, lv_color_hex(0x0b1520), LV_OPA_COVER, 4);
+    lv_obj_set_style_border_color(ipBox, C_CYAN, 0);
+    lv_obj_set_style_border_width(ipBox, 1, 0);
+    S.ip = label(ipBox, &lv_font_montserrat_10, C_CYAN, 5, 1, "0.0.0.0");
     for (int i = 0; i < 4; i++) S.wifi[i] = box(ipBox, 79 + i * 3, 10 - i * 2, 2, 2 + i * 2, lv_color_hex(0x2a8cff), LV_OPA_COVER, 0);
 
     // title, one label per letter so the shine can run over it
@@ -485,19 +485,19 @@ lv_obj_t *screen_create(Board *board)
     label(scr, &ui_font_OpenSansBold13, C_PINK, x + 1, 12, "++");
 
     // HC OS badge + uptime
-    lv_obj_t *badge = box(scr, 8, 46, 58, 13, C_VIOLET, LV_OPA_COVER, 3);
-    lv_obj_set_style_bg_grad_color(badge, lv_color_hex(0x9b5cff), 0);
-    lv_obj_set_style_bg_grad_dir(badge, LV_GRAD_DIR_HOR, 0);
-    lv_obj_center(label(badge, &lv_font_montserrat_10, C_WHITE, 0, 0, "HC OS " HCOS_VERSION));
+    lv_obj_t *badge = box(scr, 6, 45, 64, 14, lv_color_hex(0x1c0f3a), LV_OPA_COVER, 4);
+    lv_obj_set_style_border_color(badge, lv_color_hex(0x9b5cff), 0);
+    lv_obj_set_style_border_width(badge, 1, 0);
+    lv_obj_center(label(badge, &lv_font_montserrat_10, lv_color_hex(0xd6c2ff), 0, 0, "HC OS " HCOS_VERSION));
     S.uptime = label(scr, &lv_font_montserrat_10, C_YELLOW, 74, 47, "0d 0h 00m 00s");
 
     // best difficulty
-    S.bdBox = box(scr, 6, 63, 64, 16, C_WHITE, 20, 4);
+    S.bdBox = box(scr, 6, 63, 64, 16, lv_color_hex(0x1a0a1c), LV_OPA_COVER, 4);
     lv_obj_set_style_border_color(S.bdBox, lv_color_hex(0xff4f9a), 0);
-    lv_obj_set_style_border_opa(S.bdBox, 140, 0);
+    lv_obj_set_style_border_opa(S.bdBox, LV_OPA_COVER, 0);
     lv_obj_set_style_border_width(S.bdBox, 1, 0);
-    lv_obj_t *bdTag = box(S.bdBox, 2, 2, 15, 11, lv_color_hex(0xff3d8d), LV_OPA_COVER, 2);
-    lv_obj_center(label(bdTag, &lv_font_montserrat_10, C_WHITE, 0, 0, "BD"));
+    lv_obj_t *bdTag = label(S.bdBox, &lv_font_montserrat_10, lv_color_hex(0xff6fae), 3, 1, "BD");
+    (void) bdTag;
     S.bd = label(S.bdBox, &ui_font_OpenSansBold13, C_WHITE, 20, 0, "-");
 
     // chart
@@ -514,7 +514,7 @@ lv_obj_t *screen_create(Board *board)
 
     // hashrate with a soft purple "glow" copy behind it
     S.hrGlow = label(scr, &ui_font_OpenSansBold45, C_PURPLE, 7, 93, "0.0");
-    lv_obj_set_style_text_opa(S.hrGlow, 150, 0);
+    lv_obj_set_style_text_opa(S.hrGlow, 70, 0);
     S.hr = label(scr, &ui_font_OpenSansBold45, C_WHITE, 5, 91, "0.0");
     S.hrUnit = label(scr, &ui_font_OpenSansBold13, lv_color_hex(0xd9c8ff), 150, 125, "GH/s");
     S.effBar = lv_bar_create(scr);
@@ -556,7 +556,7 @@ lv_obj_t *screen_create(Board *board)
     S.deg = degree(thBox, S.temp, C_WHITE);
 
     // right panel
-    lv_obj_t *side = box(scr, 236, 20, 79, 145, C_PANEL, LV_OPA_COVER, 7);
+    lv_obj_t *side = box(scr, 236, 20, 79, 145, lv_color_hex(0x121624), LV_OPA_COVER, 7);
     lv_obj_set_style_border_color(side, C_WHITE, 0);
     lv_obj_set_style_border_opa(side, 35, 0);
     lv_obj_set_style_border_width(side, 1, 0);
@@ -576,9 +576,6 @@ lv_obj_t *screen_create(Board *board)
         lv_obj_set_style_radius(S.chips[i], 2, LV_PART_INDICATOR);
         lv_bar_set_range(S.chips[i], 0, 100);
     }
-
-    // scan line on top of everything
-    S.scan = box(scr, 0, 0, 320, 2, lv_color_hex(0xb48cff), 40, 0);
 
     draw_chart();
     draw_fan();
