@@ -130,7 +130,7 @@
       <div class="hc-row"><span>Ligação à app</span><b [class.g]="(hcInfo?.liveClients || 0) > 0">{{ (hcInfo?.liveClients || 0) > 0 ? '● ao vivo' : '—' }}</b></div>
       <div class="hc-row"><span>Proteção de arranque</span><b [class.g]="hcInfo?.bootGuard?.mining">{{ hcInfo?.bootGuard?.mining ? '✓ a minerar' : 'a confirmar…' }}</b></div>
       <div class="hc-row"><span>Shares registadas</span><b>{{ hcInfo?.shareLog?.total | number:'1.0-0' }}</b></div>
-      <div class="hc-row"><span>Se falhar volta para</span><b>{{ hcInfo?.bootGuard?.fallback || '—' }}</b></div>
+      <div class="hc-row"><span>Se falhar volta para</span><b>firmware anterior ({{ hcInfo?.bootGuard?.fallback || '—' }})</b></div>
       <div class="hc-btns">
         <button type="button" class="hc-btn" (click)="exportShares()">⬇ Exportar shares</button>
         <button type="button" class="hc-btn red" (click)="backToOfficial()">↩ Voltar ao oficial</button>

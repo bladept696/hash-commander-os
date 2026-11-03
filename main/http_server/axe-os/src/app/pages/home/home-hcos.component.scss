@@ -98,3 +98,6 @@ $mono: Consolas, 'JetBrains Mono', ui-monospace, monospace;
 .hc-btn { font: 700 12.5px 'Segoe UI', sans-serif; padding: 8px 14px; border-radius: 9px; border: 1px solid rgba(177, 77, 255, 0.5); color: #e3d2ff; background: rgba(177, 77, 255, 0.1); cursor: pointer;
   &:hover { background: rgba(177, 77, 255, 0.2); }
   &.red { border-color: rgba(255, 79, 122, 0.5); color: #ffb3c4; background: rgba(255, 79, 122, 0.08); } }
+
+// the shared chart is very tall in the default dashboard; here it matches the share feed
+:host ::ng-deep .hc .chart-canvas__wrap--tall { height: 280px !important; min-height: 0 !important; }
