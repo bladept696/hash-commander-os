@@ -225,7 +225,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     // Choose logo variant based on theme ("default" is the light theme in Nebular).
     const logoVariant = this.currentTheme === 'default' ? 'light' : 'dark';
     // Board-specific device logo (NerdAxeGaia, NerdQAxe+, …) from the device model.
-    this.logoPath = `/assets/${this.deviceModel}_${logoVariant}.png`;
+    // ?v=: the miner sends images as "immutable" for a year; a new value makes browsers fetch a changed logo
+    this.logoPath = `/assets/${this.deviceModel}_${logoVariant}.png?v=hcos-bm33`;
   }
 
   // --- Helpers for theme resolution ---
