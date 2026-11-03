@@ -269,7 +269,7 @@ void on_share_result(int pool, bool accepted)
 
 static uint8_t status_of(const Rec &r, uint32_t now_up)
 {
-    return (r.st == ST_PENDING && now_up - r.up > NO_ANSWER_S) ? ST_NO_ANSWER : r.st;
+    return (r.st == ST_PENDING && now_up - r.up > NO_ANSWER_S) ? (uint8_t) ST_NO_ANSWER : r.st;
 }
 
 // ---------------------------------------------------------------- live websocket
