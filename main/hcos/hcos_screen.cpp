@@ -212,6 +212,14 @@ static void draw_fan()
     lv_canvas_draw_rect(S.fan, (lv_coord_t) c - 3, (lv_coord_t) c - 3, 6, 6, &hub);
 }
 
+// lv_canvas_set_px_color does not check the canvas size: a pixel outside it writes past the buffer
+static void px(lv_obj_t *cv, int x, int y, int w, int h, lv_color_t c)
+{
+    if (x >= 0 && y >= 0 && x < w && y < h) {
+        lv_canvas_set_px_color(cv, x, y, c);
+    }
+}
+
 static void draw_thermo()
 {
     lv_canvas_fill_bg(S.thermo, lv_color_hex(0x10283a), LV_OPA_COVER);
@@ -232,15 +240,15 @@ static void draw_thermo()
         lv_point_t v[2] = {{(lv_coord_t) x, (lv_coord_t) y}, {(lv_coord_t) x, TH_H}};
         l.color = mix(top, bot, 0.5f);
         lv_canvas_draw_line(S.thermo, v, 2, &l);
-        lv_canvas_set_px_color(S.thermo, x, y, top);
+        px(S.thermo, x, y, TH_W, TH_H, top);
     }
     // bubbles going up
     for (int i = 0; i < 4; i++) {
         int range = TH_H - surface;
         if (range < 6) break;
-        int y = TH_H - ((S.frame * 1 + i * 19) % range);
-        lv_canvas_set_px_color(S.thermo, 6 + i * 9, y, lv_color_white());
-        lv_canvas_set_px_color(S.thermo, 7 + i * 9, y, lv_color_white());
+        int y = TH_H - 1 - ((S.frame * 1 + i * 19) % range);
+        px(S.thermo, 6 + i * 9, y, TH_W, TH_H, lv_color_white());
+        px(S.thermo, 7 + i * 9, y, TH_W, TH_H, lv_color_white());
     }
 }
 
