@@ -502,6 +502,8 @@ lv_obj_t *screen_create(Board *board)
     S.ip = label(ipBox, &lv_font_montserrat_10, C_CYAN, 5, 1, "0.0.0.0");
     for (int i = 0; i < 4; i++) S.wifi[i] = box(ipBox, 79 + i * 3, 10 - i * 2, 2, 2 + i * 2, lv_color_hex(0x2a8cff), LV_OPA_COVER, 0);
 
+    nav_dots(scr, 0);
+
     // the real logo (NERDQaxe++ BITMINER33) as an image: smooth edges, same lettering as the web page
     lv_obj_t *logo = lv_img_create(scr);
     lv_img_set_src(logo, &hcos_logo);

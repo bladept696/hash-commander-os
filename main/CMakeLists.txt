@@ -77,6 +77,7 @@ SRCS
     "./tasks/asic_result_task.cpp"
     "./hcos/hcos.cpp"
     "./hcos/hcos_screen.cpp"
+    "./hcos/hcos_pages.cpp"
     "./hcos/hcos_logo.c"
     "./hcos/hcos_splash.c"
     "./tasks/influx_task.cpp"

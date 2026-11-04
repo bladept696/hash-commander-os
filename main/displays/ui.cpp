@@ -562,6 +562,11 @@ void UI::settingsScreenInit(void)
     lv_obj_set_style_text_align(ui_lbPortSet, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_lbPortSet, &ui_font_OpenSansBold13, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_add_event_cb(ui_SettingsScreen, on_screen_loaded, LV_EVENT_SCREEN_LOADED, m_display);
+
+    // Hash Commander OS: our page takes the place of the stock one (kept, never shown, for the driver's labels)
+    ui_SettingsScreen = hcos::page_pool_create();
+    lv_obj_add_event_cb(ui_SettingsScreen, on_screen_loaded, LV_EVENT_SCREEN_LOADED, m_display);
+    hcos::pages_start();
 }
 
 void UI::logScreenInit(void)
@@ -645,6 +650,11 @@ void UI::bTCScreenInit(void)
     lv_obj_set_style_text_align(ui_lblTempPrice, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_lblTempPrice, &ui_font_OpenSansBold24, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_add_event_cb(ui_BTCScreen, on_screen_loaded, LV_EVENT_SCREEN_LOADED, m_display);
+
+    // Hash Commander OS: our page takes the place of the stock one (kept, never shown, for the driver's labels)
+    ui_BTCScreen = hcos::page_btc_create();
+    lv_obj_add_event_cb(ui_BTCScreen, on_screen_loaded, LV_EVENT_SCREEN_LOADED, m_display);
+    hcos::pages_start();
 }
 
 void UI::globalStatsScreenInit(void)
@@ -756,6 +766,11 @@ void UI::globalStatsScreenInit(void)
     lv_obj_set_style_text_align(ui_lblhighFee, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_lblhighFee, &ui_font_OpenSansBold13, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_add_event_cb(ui_GlobalStats, on_screen_loaded, LV_EVENT_SCREEN_LOADED, m_display);
+
+    // Hash Commander OS: our page takes the place of the stock one (kept, never shown, for the driver's labels)
+    ui_GlobalStats = hcos::page_net_create();
+    lv_obj_add_event_cb(ui_GlobalStats, on_screen_loaded, LV_EVENT_SCREEN_LOADED, m_display);
+    hcos::pages_start();
 
 }
 void UI::createQRScreen(uint8_t *buf, int size) {

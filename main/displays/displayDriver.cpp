@@ -339,28 +339,28 @@ bool DisplayDriver::enterState(UiState s, int64_t now)
         if (m_ui->ui_Splash2) { lv_obj_clean(m_ui->ui_Splash2); m_ui->ui_Splash2 = NULL; }
         enableLvglAnimations(true);
         if (previousState == UiState::GlobalStats) {
-            safe_screen_change(m_ui->ui_MiningScreen, LV_SCR_LOAD_ANIM_MOVE_LEFT, 350, 0);
+            safe_screen_change(m_ui->ui_MiningScreen, LV_SCR_LOAD_ANIM_NONE, 0, 0);
         } else {
-            safe_screen_change(m_ui->ui_MiningScreen, LV_SCR_LOAD_ANIM_FADE_ON, 500, 0);
+            safe_screen_change(m_ui->ui_MiningScreen, LV_SCR_LOAD_ANIM_NONE, 0, 0);
         }
         break;
 
     case UiState::SettingsScreen:
         ESP_LOGI(TAG, "enter state settings screen");
         enableLvglAnimations(true);
-        safe_screen_change(m_ui->ui_SettingsScreen, LV_SCR_LOAD_ANIM_MOVE_LEFT, 350, 0);
+        safe_screen_change(m_ui->ui_SettingsScreen, LV_SCR_LOAD_ANIM_NONE, 0, 0);
         break;
 
     case UiState::BTCScreen:
         ESP_LOGI(TAG, "enter state btc screen");
         enableLvglAnimations(true);
-        safe_screen_change(m_ui->ui_BTCScreen, LV_SCR_LOAD_ANIM_MOVE_LEFT, 350, 0);
+        safe_screen_change(m_ui->ui_BTCScreen, LV_SCR_LOAD_ANIM_NONE, 0, 0);
         break;
 
     case UiState::GlobalStats:
         ESP_LOGI(TAG, "enter state global stats");
         enableLvglAnimations(true);
-        safe_screen_change(m_ui->ui_GlobalStats, LV_SCR_LOAD_ANIM_MOVE_LEFT, 350, 0);
+        safe_screen_change(m_ui->ui_GlobalStats, LV_SCR_LOAD_ANIM_NONE, 0, 0);
         break;
     case UiState::ShowQR:
         ESP_LOGI(TAG, "enter qr state");

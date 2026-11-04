@@ -16,4 +16,13 @@ lv_obj_t *screen_create(Board *board);
 // boot splash (logo, version and a filling bar); replaces the stock first splash
 lv_obj_t *splash_create();
 
+// pages after the mining screen (top button): pool and machine, Bitcoin, Bitcoin network (hcos_pages.cpp)
+lv_obj_t *page_pool_create();
+lv_obj_t *page_btc_create();
+lv_obj_t *page_net_create();
+void pages_start();
+
+// the four page dots at the top right (active = 0..3)
+void nav_dots(lv_obj_t *scr, int active);
+
 } // namespace hcos
