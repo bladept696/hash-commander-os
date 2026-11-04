@@ -30,6 +30,9 @@ static const char *TAG = "hcos";
 
 namespace hcos {
 
+// newer stable release found on GitHub (see check_update_once)
+static char s_update[16] = "";
+
 // ---------------------------------------------------------------- boot guard
 
 static const char *NVS_NS = "hcos";
@@ -570,7 +573,6 @@ static esp_err_t POST_rollback(httpd_req_t *req)
 }
 
 // ---------------------------------------------------------------- new version check
-static char s_update[16] = "";
 
 const char *update_available() { return s_update; }
 
