@@ -590,6 +590,58 @@ export class EditComponent implements OnInit {
     return `${(pct * 216.8).toFixed(1)} 400`;
   }
 
+  /** Hash Commander OS dials: the knob at the end of the arc */
+  public hcKnob(value: number, options: { value: number }[]): { x: number; y: number } {
+    const vals = (options || []).map((o) => Number(o.value)).filter((v) => !isNaN(v));
+    const lo = Math.min(...vals), hi = Math.max(...vals);
+    const pct = vals.length && hi > lo ? Math.max(0, Math.min(1, (Number(value) - lo) / (hi - lo))) : 0.5;
+    const a = ((135 + 270 * pct) * Math.PI) / 180;
+    return { x: +(60 + 46 * Math.cos(a)).toFixed(1), y: +(60 + 46 * Math.sin(a)).toFixed(1) };
+  }
+
+  public hcDragging: 'frequency' | 'coreVoltage' | null = null;
+
+  /** Manual OC: set frequency / voltage in steps of 5, inside the range the board offers */
+  public hcSet(ctrl: 'frequency' | 'coreVoltage', value: number): void {
+    const base = ctrl === 'frequency' ? this.asicFrequencyValues : this.asicVoltageValues;
+    const cur = ctrl === 'frequency' ? this.frequencyOptions : this.voltageOptions;
+    const vals = (cur || []).map((o) => Number(o.value)).filter((v) => !isNaN(v));
+    if (!vals.length) return;
+    const lo = Math.min(...vals), hi = Math.max(...vals);
+    const v = Math.max(lo, Math.min(hi, Math.round(value / 5) * 5));
+    const c = this.form.controls[ctrl];
+    if (c.value === v) return;
+    c.setValue(v);
+    c.markAsDirty();
+    this.form.markAsDirty();
+    const kept = cur.filter((o) => base.includes(o.value) || o.value === lo || o.value === hi);
+    if (ctrl === 'frequency') this.frequencyOptions = this.assembleDropdownOptions(kept, v);
+    else this.voltageOptions = this.assembleDropdownOptions(kept, v);
+  }
+
+  public hcStep(ctrl: 'frequency' | 'coreVoltage', dir: number): void {
+    this.hcSet(ctrl, Number(this.form.controls[ctrl].value) + 5 * dir);
+  }
+
+  /** Drag on the dial: the pointer angle (270° arc starting at 135°) becomes the value */
+  public hcDrag(ev: PointerEvent, ctrl: 'frequency' | 'coreVoltage'): void {
+    const el = ev.currentTarget as Element;
+    if (ev.type === 'pointerdown') {
+      el.setPointerCapture?.(ev.pointerId);
+      this.hcDragging = ctrl;
+      ev.preventDefault();
+    } else if (this.hcDragging !== ctrl) {
+      return;
+    }
+    const r = el.getBoundingClientRect();
+    let a = (Math.atan2(ev.clientY - r.top - r.height / 2, ev.clientX - r.left - r.width / 2) * 180) / Math.PI;
+    a = (a - 135 + 720) % 360;
+    if (a > 270) a = a > 315 ? 0 : 270;
+    const vals = (ctrl === 'frequency' ? this.frequencyOptions : this.voltageOptions).map((o) => Number(o.value)).filter((v) => !isNaN(v));
+    const lo = Math.min(...vals), hi = Math.max(...vals);
+    this.hcSet(ctrl, lo + ((hi - lo) * a) / 270);
+  }
+
   public isFrequencyTooHigh(): boolean {
     if (!this.asicFrequencyValues.length) return false;
     const maxFrequency = Math.max(...this.asicFrequencyValues);

@@ -120,6 +120,17 @@
     b { display: block; position: relative; font: 800 24px 'Segoe UI', sans-serif; color: #fff; text-shadow: 0 0 12px #ff4fd8; }
     small { display: block; position: relative; margin-top: 30px; font: 700 11px Consolas, monospace; color: #8f88a8; }
     &.hot b { color: #ff8a8a; text-shadow: 0 0 12px #ff4f4f; }
+    svg { cursor: grab; touch-action: none; position: relative; z-index: 1; }
+    &.drag svg { cursor: grabbing; }
+    b, small { pointer-events: none; }
+    &.drag .arc { transition: none; }
+    .knob { fill: #fff; stroke: #ff4fd8; stroke-width: 2; filter: drop-shadow(0 0 4px #ff4fd8); }
+    .hc-steps {
+      display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 8px; position: relative; z-index: 2;
+      button { width: 34px; height: 28px; border-radius: 8px; border: 1px solid rgba(177, 77, 255, 0.55); background: rgba(177, 77, 255, 0.14); color: #fff; font: 700 16px 'Segoe UI', sans-serif; cursor: pointer; }
+      button:hover { border-color: #ff4fd8; box-shadow: 0 0 10px rgba(255, 79, 216, 0.4); }
+      span { min-width: 54px; font: 700 11px Consolas, monospace; color: #8f88a8; }
+    }
   }
 
   /* ---- System: 3D chip ---- */

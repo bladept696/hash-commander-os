@@ -333,15 +333,19 @@
                 <!-- Hash Commander OS: frequency and voltage as dials (only with the HC OS theme) -->
                 <div class="hcos-only hc-dials">
                     <svg width="0" height="0" style="position:absolute"><defs><linearGradient id="hcDialG" x1="0" x2="1"><stop offset="0" stop-color="#4fd6ff"/><stop offset="1" stop-color="#ff4fd8"/></linearGradient></defs></svg>
-                    <div class="hc-dial" [class.hot]="isFrequencyTooHigh()">
-                        <svg viewBox="0 0 120 120"><circle class="bg" cx="60" cy="60" r="46" stroke-dasharray="216.8 400" transform="rotate(135 60 60)"/>
-                            <circle class="arc" cx="60" cy="60" r="46" stroke="url(#hcDialG)" [attr.stroke-dasharray]="hcDial(form.controls['frequency'].value, frequencyOptions)" transform="rotate(135 60 60)"/></svg>
+                    <div class="hc-dial" [class.hot]="isFrequencyTooHigh()" [class.drag]="hcDragging === 'frequency'">
+                        <svg viewBox="0 0 120 120" (pointerdown)="hcDrag($event, 'frequency')" (pointermove)="hcDrag($event, 'frequency')" (pointerup)="hcDragging = null" (pointercancel)="hcDragging = null"><circle class="bg" cx="60" cy="60" r="46" stroke-dasharray="216.8 400" transform="rotate(135 60 60)"/>
+                            <circle class="arc" cx="60" cy="60" r="46" stroke="url(#hcDialG)" [attr.stroke-dasharray]="hcDial(form.controls['frequency'].value, frequencyOptions)" transform="rotate(135 60 60)"/>
+                            <circle class="knob" r="7" [attr.cx]="hcKnob(form.controls['frequency'].value, frequencyOptions).x" [attr.cy]="hcKnob(form.controls['frequency'].value, frequencyOptions).y"/></svg>
                         <b>{{ form.controls['frequency'].value }}</b><small>MHz · {{ 'SETTINGS.FREQUENCY' | translate }}</small>
+                        <div class="hc-steps"><button type="button" (click)="hcStep('frequency', -1)" aria-label="-5 MHz">−</button><span>5 MHz</span><button type="button" (click)="hcStep('frequency', 1)" aria-label="+5 MHz">+</button></div>
                     </div>
-                    <div class="hc-dial" [class.hot]="isVoltageTooHigh()">
-                        <svg viewBox="0 0 120 120"><circle class="bg" cx="60" cy="60" r="46" stroke-dasharray="216.8 400" transform="rotate(135 60 60)"/>
-                            <circle class="arc" cx="60" cy="60" r="46" stroke="url(#hcDialG)" [attr.stroke-dasharray]="hcDial(form.controls['coreVoltage'].value, voltageOptions)" transform="rotate(135 60 60)"/></svg>
+                    <div class="hc-dial" [class.hot]="isVoltageTooHigh()" [class.drag]="hcDragging === 'coreVoltage'">
+                        <svg viewBox="0 0 120 120" (pointerdown)="hcDrag($event, 'coreVoltage')" (pointermove)="hcDrag($event, 'coreVoltage')" (pointerup)="hcDragging = null" (pointercancel)="hcDragging = null"><circle class="bg" cx="60" cy="60" r="46" stroke-dasharray="216.8 400" transform="rotate(135 60 60)"/>
+                            <circle class="arc" cx="60" cy="60" r="46" stroke="url(#hcDialG)" [attr.stroke-dasharray]="hcDial(form.controls['coreVoltage'].value, voltageOptions)" transform="rotate(135 60 60)"/>
+                            <circle class="knob" r="7" [attr.cx]="hcKnob(form.controls['coreVoltage'].value, voltageOptions).x" [attr.cy]="hcKnob(form.controls['coreVoltage'].value, voltageOptions).y"/></svg>
                         <b>{{ form.controls['coreVoltage'].value }}</b><small>mV · {{ 'SETTINGS.CORE_VOLTAGE' | translate }}</small>
+                        <div class="hc-steps"><button type="button" (click)="hcStep('coreVoltage', -1)" aria-label="-5 mV">−</button><span>5 mV</span><button type="button" (click)="hcStep('coreVoltage', 1)" aria-label="+5 mV">+</button></div>
                     </div>
                 </div>
                 <div class="hcos-only hc-oc-warn" *ngIf="form.controls['frequency'].value > 800">
