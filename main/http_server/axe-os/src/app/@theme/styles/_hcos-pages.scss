@@ -155,6 +155,7 @@
   .hc-chk { display: flex; gap: 9px; align-items: center; font-size: 13px; color: #ece8ff; margin-bottom: 14px; cursor: pointer;
     input { width: 18px; height: 18px; accent-color: #ff4fd8; } }
   .hc-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+  .hc-oc button { width: auto !important; flex: 0 0 auto; white-space: nowrap; }
   .hc-btn { font: 800 13px 'Segoe UI', sans-serif; padding: 11px 18px; border: 0; border-radius: 11px; color: #fff; cursor: pointer; background: linear-gradient(180deg, #c06bff, #7b2bd6); box-shadow: 0 5px 0 #4a1590, 0 10px 20px rgba(177, 77, 255, 0.33);
     &.g { background: linear-gradient(180deg, #7dffc0, #14b86a); box-shadow: 0 5px 0 #0b6b3c; color: #03140b; }
     &.sm { padding: 8px 14px; background: rgba(255, 255, 255, 0.08); box-shadow: none; border: 1px solid rgba(255, 255, 255, 0.15); }
