@@ -49,6 +49,7 @@ struct Screen {
     lv_obj_t *scr = nullptr;
     lv_obj_t *liveDot = nullptr, *liveLbl = nullptr, *ip = nullptr, *wifi[4] = {};
     lv_obj_t *uptime = nullptr, *bd = nullptr, *bdBox = nullptr, *shares = nullptr;
+    lv_obj_t *badge = nullptr, *badgeLbl = nullptr;
     lv_obj_t *hr = nullptr, *hrGlow = nullptr, *hrUnit = nullptr, *effBar = nullptr, *effLbl = nullptr;
     lv_obj_t *chart = nullptr, *chartDot = nullptr, *chartBox = nullptr;
     lv_obj_t *fan = nullptr, *rpm = nullptr;
@@ -328,6 +329,30 @@ static void update_data(int64_t now)
 
     fmt_hashrate(buf, sizeof(buf), hr);
     lv_label_set_text(S.hr, buf);
+
+    // new firmware on GitHub: the badge switches between "HC OS x.y.z" and a pink "NOVA x.y.z" every 3 s
+    if (S.badge && S.badgeLbl) {
+        const char *upd = update_available();
+        bool showNew = upd[0] && ((now / 3000000) % 2);
+        static int8_t shown = -1;
+        if (showNew != (shown == 1) || shown < 0) {
+            shown = showNew ? 1 : 0;
+            if (showNew) {
+                char t[24];
+                snprintf(t, sizeof(t), "NOVA %s", upd);
+                lv_label_set_text(S.badgeLbl, t);
+                lv_obj_set_style_border_color(S.badge, lv_color_hex(0xff4fd8), 0);
+                lv_obj_set_style_bg_color(S.badge, lv_color_hex(0x3a0f30), 0);
+                lv_obj_set_style_text_color(S.badgeLbl, lv_color_hex(0xffffff), 0);
+            } else {
+                lv_label_set_text(S.badgeLbl, "HC OS " HCOS_VERSION);
+                lv_obj_set_style_border_color(S.badge, lv_color_hex(0x9b5cff), 0);
+                lv_obj_set_style_bg_color(S.badge, lv_color_hex(0x1c0f3a), 0);
+                lv_obj_set_style_text_color(S.badgeLbl, lv_color_hex(0xd6c2ff), 0);
+            }
+            lv_obj_center(S.badgeLbl);
+        }
+    }
     lv_label_set_text(S.hrGlow, buf);
     lv_obj_update_layout(S.hr);
     lv_obj_align_to(S.hrUnit, S.hr, LV_ALIGN_OUT_RIGHT_BOTTOM, 3, -8);
@@ -486,7 +511,9 @@ lv_obj_t *screen_create(Board *board)
     lv_obj_t *badge = box(scr, 6, 45, 64, 14, lv_color_hex(0x1c0f3a), LV_OPA_COVER, 4);
     lv_obj_set_style_border_color(badge, lv_color_hex(0x9b5cff), 0);
     lv_obj_set_style_border_width(badge, 1, 0);
-    lv_obj_center(label(badge, &lv_font_montserrat_10, lv_color_hex(0xd6c2ff), 0, 0, "HC OS " HCOS_VERSION));
+    S.badge = badge;
+    S.badgeLbl = label(badge, &lv_font_montserrat_10, lv_color_hex(0xd6c2ff), 0, 0, "HC OS " HCOS_VERSION);
+    lv_obj_center(S.badgeLbl);
     S.uptime = label(scr, &lv_font_montserrat_14, C_YELLOW, 74, 46, "0d 0h 00m 00s");
 
     // best difficulty

@@ -6,12 +6,13 @@
 //  * boot guard:  after an update, if the new firmware keeps rebooting before it mines, the previous
 //                 firmware is booted again (the stock bootloader has no app rollback)
 //  * info:        GET /api/hc/info tells apps that this is Hash Commander OS
+//  * updates:     every 6 h the latest stable release on GitHub is checked; a newer one shows on the screen and in /api/hc/info
 #pragma once
 
 #include <stdint.h>
 #include "esp_http_server.h"
 
-#define HCOS_VERSION "0.4.0"
+#define HCOS_VERSION "0.4.1"
 
 namespace hcos {
 
@@ -36,5 +37,8 @@ void on_share_result(int pool, bool accepted);
 uint32_t share_last();
 bool share_get(uint32_t seq, double *diff, uint8_t *st);
 int live_clients();
+
+// newer stable HC OS on GitHub ("0.4.2"), or "" when this is the latest / not checked yet
+const char *update_available();
 
 } // namespace hcos

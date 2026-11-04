@@ -244,6 +244,11 @@
   box-shadow: 0 0 12px rgba(155, 92, 255, 0.55);
   align-self: center;
 }
+.hcos-badge.hcos-new {
+  color: #fff; border-color: #ff4fd8; background: rgba(255, 79, 216, 0.18); cursor: help;
+  box-shadow: 0 0 14px rgba(255, 79, 216, 0.55); animation: hcosNewPulse 1.6s ease-in-out infinite;
+}
+@keyframes hcosNewPulse { 50% { box-shadow: 0 0 4px rgba(255, 79, 216, 0.2); } }
 
 /* Hash Commander OS: the logo (NERDQaxe++ BITMINER33) is wide; on phones it must not be squeezed to nothing */
 .logo-container, .logo-container .logo { flex-shrink: 0; min-width: 0; }

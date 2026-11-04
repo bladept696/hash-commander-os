@@ -323,6 +323,7 @@ export class EditComponent implements OnInit {
           .pipe(startWith(this.form.controls['fan1Mode'].value))
           .subscribe(() => this.updateFan1FieldStates());
 
+        this.hcInit(info);
         this.updatePIDFieldStates();
         this.updateFan1FieldStates();
 
@@ -582,64 +583,182 @@ export class EditComponent implements OnInit {
     return this.form?.controls['coreVoltage'].value > maxVoltage;
   }
 
-  /** Hash Commander OS dials: how far the value is between the lowest and the highest option (SVG dash for a 270° arc, r = 46) */
-  public hcDial(value: number, options: { value: number }[]): string {
-    const vals = (options || []).map((o) => Number(o.value)).filter((v) => !isNaN(v));
-    const lo = Math.min(...vals), hi = Math.max(...vals);
-    const pct = vals.length && hi > lo ? Math.max(0, Math.min(1, (Number(value) - lo) / (hi - lo))) : 0.5;
-    return `${(pct * 216.8).toFixed(1)} 400`;
+  // ---------------- Hash Commander OS: manual overclock ----------------
+  public hcOc: { fMin: number; fMax: number; fWarn: number; vMin: number; vMax: number; vWarn: number; f0: number; v0: number } | null = null;
+  public hcMode: 'safe' | 'lists' | 'manual' = 'manual';
+  public hcKeys: ('frequency' | 'coreVoltage')[] = ['frequency', 'coreVoltage'];
+  public hcStepSize = 5;
+  public hcAccept = false;
+  public hcNow: { hr: number; err: number; asic: number; vr: number; jth: number; watts: number; vin: number; ampMax: number; cores: number; chips: { err: number; h: number }[] } | null = null;
+  public hcTest: { t: number; from: { f: number; v: number }; to: { f: number; v: number }; before: { hr: number; err: number; asic: number; vr: number } } | null = null;
+  private hcTimer: any = null;
+  private readonly hcTestKey = 'hcOcTest';
+
+  private hcInit(info: any): void {
+    const freqs: number[] = this.asicFrequencyValues.length ? this.asicFrequencyValues : [info.frequency];
+    const volts: number[] = this.asicVoltageValues.length ? this.asicVoltageValues : [info.coreVoltage];
+    const fMax = Math.max(info.absMaxFrequency || 0, ...freqs, info.frequency);
+    const vMax = Math.max(info.absMaxVoltage || info.absMaxCoreVoltage || 0, ...volts, info.coreVoltage);
+    this.hcOc = {
+      fMin: Math.min(400, ...freqs, info.frequency), fMax, fWarn: Math.min(800, fMax),
+      vMin: Math.min(info.absMinVoltage || info.absMinCoreVoltage || 1005, ...volts, info.coreVoltage), vMax, vWarn: Math.min(1300, vMax),
+      f0: info.frequency, v0: info.coreVoltage,
+    };
+    const m = this.localStorageService.getItem('hcOcMode');
+    if (m === 'safe' || m === 'lists' || m === 'manual') this.hcMode = m;
+    try { this.hcTest = JSON.parse(this.localStorageService.getItem(this.hcTestKey) || 'null'); } catch { this.hcTest = null; }
+    if (!this.uri && !this.hcTimer) {
+      this.hcPoll();
+      this.hcTimer = setInterval(() => this.hcPoll(), 5000);
+    }
   }
 
-  /** Hash Commander OS dials: the knob at the end of the arc */
-  public hcKnob(value: number, options: { value: number }[]): { x: number; y: number } {
-    const vals = (options || []).map((o) => Number(o.value)).filter((v) => !isNaN(v));
-    const lo = Math.min(...vals), hi = Math.max(...vals);
-    const pct = vals.length && hi > lo ? Math.max(0, Math.min(1, (Number(value) - lo) / (hi - lo))) : 0.5;
-    const a = ((135 + 270 * pct) * Math.PI) / 180;
-    return { x: +(60 + 46 * Math.cos(a)).toFixed(1), y: +(60 + 46 * Math.sin(a)).toFixed(1) };
+  ngOnDestroy(): void {
+    if (this.hcTimer) clearInterval(this.hcTimer);
+    this.hcTimer = null;
   }
 
-  public hcDragging: 'frequency' | 'coreVoltage' | null = null;
+  private hcPoll(): void {
+    this.systemService.getDashboardV2WithSpan().subscribe({
+      next: (d: any) => {
+        const p = d?.performance || {}, pw = d?.power || {}, th = d?.thermal || {};
+        const chips: any[] = Array.isArray(p.chips) ? p.chips : [];
+        const tot = chips.reduce((a, c) => a + (Number(c.hashRate) || 0), 0);
+        const errTot = chips.reduce((a, c) => a + (Number(c.errorHashRate) || 0), 0);
+        const hmax = Math.max(1, ...chips.map((c) => Number(c.hashRate) || 0));
+        const hr = Number(p.hashRate1m || p.hashRate) || 0;
+        this.hcNow = {
+          hr, err: tot > 0 ? (100 * errTot) / tot : 0, asic: Number(th.asicTemp) || 0, vr: Number(th.vrTemp) || 0,
+          jth: hr > 0 ? (Number(pw.watts) || 0) / (hr / 1000) : 0, watts: Number(pw.watts) || 0, vin: Number(pw.voltage) || 12,
+          ampMax: Number(pw.currentAMax) || 0, cores: (Number(p.smallCoreCount) || 0) * (Number(p.asicCount) || 0),
+          chips: chips.map((c) => {
+            const h = Number(c.hashRate) || 0;
+            return { err: h > 0 ? (100 * (Number(c.errorHashRate) || 0)) / h : 0, h: Math.max(8, (100 * h) / hmax) };
+          }),
+        };
+      },
+      error: () => {},
+    });
+  }
 
-  /** Manual OC: set frequency / voltage in steps of 5, inside the range the board offers */
-  public hcSet(ctrl: 'frequency' | 'coreVoltage', value: number): void {
-    const base = ctrl === 'frequency' ? this.asicFrequencyValues : this.asicVoltageValues;
-    const cur = ctrl === 'frequency' ? this.frequencyOptions : this.voltageOptions;
-    const vals = (cur || []).map((o) => Number(o.value)).filter((v) => !isNaN(v));
-    if (!vals.length) return;
-    const lo = Math.min(...vals), hi = Math.max(...vals);
-    const v = Math.max(lo, Math.min(hi, Math.round(value / 5) * 5));
-    const c = this.form.controls[ctrl];
-    if (c.value === v) return;
+  public hcSetMode(m: 'safe' | 'lists' | 'manual'): void {
+    this.hcMode = m;
+    this.localStorageService.setItem('hcOcMode', m);
+  }
+
+  public hcMin(k: 'frequency' | 'coreVoltage'): number { return k === 'frequency' ? this.hcOc!.fMin : this.hcOc!.vMin; }
+  public hcMax(k: 'frequency' | 'coreVoltage'): number { return k === 'frequency' ? this.hcOc!.fMax : this.hcOc!.vMax; }
+  public hcWarn(k: 'frequency' | 'coreVoltage'): number { return k === 'frequency' ? this.hcOc!.fWarn : this.hcOc!.vWarn; }
+  public hcDef(k: 'frequency' | 'coreVoltage'): number {
+    return (k === 'frequency' ? this.defaultFrequency : this.defaultCoreVoltage) || this.hcMin(k);
+  }
+
+  public hcListValues(k: 'frequency' | 'coreVoltage'): number[] {
+    const base = k === 'frequency' ? this.asicFrequencyValues : this.asicVoltageValues;
+    const lim = this.hcWarn(k);
+    const vals = new Set<number>(this.hcMode === 'safe' ? base.filter((v) => v <= lim) : base);
+    vals.add(Number(this.form.controls[k].value));
+    return [...vals].sort((a, b) => a - b);
+  }
+
+  /** green up to the default, yellow up to the board limit, red above */
+  public hcTrack(k: 'frequency' | 'coreVoltage'): string {
+    const lo = this.hcMin(k), hi = this.hcMax(k), span = Math.max(1, hi - lo);
+    const d = Math.max(0, Math.min(100, (100 * (this.hcDef(k) - lo)) / span));
+    const w = Math.max(d, Math.min(100, (100 * (this.hcWarn(k) - lo)) / span));
+    return `linear-gradient(90deg, #3dff9a 0%, #3dff9a ${d}%, #ffd23f ${d}%, #ffd23f ${w}%, #ff4f6a ${w}%, #ff4f6a 100%)`;
+  }
+
+  public hcSet(k: 'frequency' | 'coreVoltage', value: number): void {
+    if (!this.hcOc || isNaN(value)) return;
+    const v = Math.round(Math.max(this.hcMin(k), Math.min(this.hcMax(k), value)));
+    const c = this.form.controls[k];
+    if (Number(c.value) === v) return;
     c.setValue(v);
     c.markAsDirty();
     this.form.markAsDirty();
-    const kept = cur.filter((o) => base.includes(o.value) || o.value === lo || o.value === hi);
-    if (ctrl === 'frequency') this.frequencyOptions = this.assembleDropdownOptions(kept, v);
-    else this.voltageOptions = this.assembleDropdownOptions(kept, v);
+    this.hcAccept = false;
   }
 
-  public hcStep(ctrl: 'frequency' | 'coreVoltage', dir: number): void {
-    this.hcSet(ctrl, Number(this.form.controls[ctrl].value) + 5 * dir);
+  public hcRisky(): boolean {
+    if (!this.hcOc) return false;
+    return Number(this.form.controls['frequency'].value) > this.hcOc.fWarn || Number(this.form.controls['coreVoltage'].value) > this.hcOc.vWarn;
   }
 
-  /** Drag on the dial: the pointer angle (270° arc starting at 135°) becomes the value */
-  public hcDrag(ev: PointerEvent, ctrl: 'frequency' | 'coreVoltage'): void {
-    const el = ev.currentTarget as Element;
-    if (ev.type === 'pointerdown') {
-      el.setPointerCapture?.(ev.pointerId);
-      this.hcDragging = ctrl;
-      ev.preventDefault();
-    } else if (this.hcDragging !== ctrl) {
-      return;
-    }
-    const r = el.getBoundingClientRect();
-    let a = (Math.atan2(ev.clientY - r.top - r.height / 2, ev.clientX - r.left - r.width / 2) * 180) / Math.PI;
-    a = (a - 135 + 720) % 360;
-    if (a > 270) a = a > 315 ? 0 : 270;
-    const vals = (ctrl === 'frequency' ? this.frequencyOptions : this.voltageOptions).map((o) => Number(o.value)).filter((v) => !isNaN(v));
-    const lo = Math.min(...vals), hi = Math.max(...vals);
-    this.hcSet(ctrl, lo + ((hi - lo) * a) / 270);
+  /** estimate from what the machine draws now: power grows with the frequency and with the square of the voltage */
+  public hcEst(): { ths: number; watts: number; amps: number; wLevel: number; aLevel: number } | null {
+    if (!this.hcOc) return null;
+    const f = Number(this.form.controls['frequency'].value), v = Number(this.form.controls['coreVoltage'].value);
+    const n = this.hcNow;
+    const ths = n && n.cores ? (f * n.cores) / 1e6 : 0;
+    const watts = n && n.watts ? n.watts * (f / this.hcOc.f0) * Math.pow(v / this.hcOc.v0, 2) : 0;
+    const amps = watts / (n?.vin || 12);
+    const ampMax = n?.ampMax || 0;
+    return {
+      ths, watts, amps,
+      wLevel: watts > 100 ? 2 : watts > 85 ? 1 : 0,
+      aLevel: ampMax ? (amps > ampMax ? 2 : amps > ampMax * 0.85 ? 1 : 0) : 0,
+    };
+  }
+
+  public hcApply(f?: number, v?: number): void {
+    if (!this.hcOc) return;
+    if (f !== undefined) this.form.controls['frequency'].setValue(f);
+    if (v !== undefined) this.form.controls['coreVoltage'].setValue(v);
+    const to = { f: Number(this.form.controls['frequency'].value), v: Number(this.form.controls['coreVoltage'].value) };
+    const from = { f: this.hcOc.f0, v: this.hcOc.v0 };
+    const n = this.hcNow;
+    this.otpAuth.ensureOtp$(this.uri, this.translate.instant('SECURITY.OTP_TITLE'), this.translate.instant('SECURITY.OTP_HINT'))
+      .pipe(
+        switchMap(({ totp }: EnsureOtpResult) => this.updateSystem(totp).pipe(
+          switchMap(() => this.systemService.restart('', totp)),
+          tap(() => this.otpAuth.clearSession()),
+          this.loadingService.lockUIUntilComplete(),
+        )),
+      )
+      .subscribe({
+        next: () => {
+          if (!this.uri && n && (to.f !== from.f || to.v !== from.v)) {
+            this.hcTest = { t: Date.now(), from, to, before: { hr: n.hr, err: n.err, asic: n.asic, vr: n.vr } };
+            this.localStorageService.setItem(this.hcTestKey, JSON.stringify(this.hcTest));
+          }
+          this.hcOc!.f0 = to.f;
+          this.hcOc!.v0 = to.v;
+          this.hcAccept = false;
+          this.toastrService.success(`${to.f} MHz · ${to.v} mV guardados. A máquina está a reiniciar.`, 'Overclock');
+        },
+        error: (err: HttpErrorResponse) => this.toastrService.danger(`Não foi possível aplicar. ${err.message}`, 'Erro'),
+      });
+  }
+
+  public hcSafe(): void {
+    this.hcAccept = false;
+    this.hcApply(this.hcDef('frequency'), this.hcDef('coreVoltage'));
+  }
+
+  /** minutes left until the 5-minute comparison */
+  public hcTestWait(): number {
+    return this.hcTest ? Math.max(0, Math.ceil((this.hcTest.t + 5 * 60000 - Date.now()) / 60000)) : 0;
+  }
+
+  public hcWorse(): string {
+    const t = this.hcTest, n = this.hcNow;
+    if (!t || !n) return '';
+    if (n.err > t.before.err + 5) return `Os erros dos chips subiram de ${t.before.err.toFixed(1)} % para ${n.err.toFixed(1)} %.`;
+    if (t.to.f > t.from.f && n.hr < t.before.hr * 0.98) return `O hashrate desceu (${(t.before.hr / 1000).toFixed(2)} → ${(n.hr / 1000).toFixed(2)} TH/s) apesar de subires a frequência.`;
+    return '';
+  }
+
+  public hcRevert(): void {
+    const t = this.hcTest;
+    if (!t) return;
+    this.hcEndTest();
+    this.hcApply(t.from.f, t.from.v);
+  }
+
+  public hcEndTest(): void {
+    this.hcTest = null;
+    this.localStorageService.setItem(this.hcTestKey, 'null');
   }
 
   public isFrequencyTooHigh(): boolean {

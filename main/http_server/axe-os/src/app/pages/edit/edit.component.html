@@ -330,28 +330,97 @@
                 </div>
             </nb-card-header>
             <nb-card-body>
-                <!-- Hash Commander OS: frequency and voltage as dials (only with the HC OS theme) -->
-                <div class="hcos-only hc-dials">
-                    <svg width="0" height="0" style="position:absolute"><defs><linearGradient id="hcDialG" x1="0" x2="1"><stop offset="0" stop-color="#4fd6ff"/><stop offset="1" stop-color="#ff4fd8"/></linearGradient></defs></svg>
-                    <div class="hc-dial" [class.hot]="isFrequencyTooHigh()" [class.drag]="hcDragging === 'frequency'">
-                        <svg viewBox="0 0 120 120" (pointerdown)="hcDrag($event, 'frequency')" (pointermove)="hcDrag($event, 'frequency')" (pointerup)="hcDragging = null" (pointercancel)="hcDragging = null"><circle class="bg" cx="60" cy="60" r="46" stroke-dasharray="216.8 400" transform="rotate(135 60 60)"/>
-                            <circle class="arc" cx="60" cy="60" r="46" stroke="url(#hcDialG)" [attr.stroke-dasharray]="hcDial(form.controls['frequency'].value, frequencyOptions)" transform="rotate(135 60 60)"/>
-                            <circle class="knob" r="7" [attr.cx]="hcKnob(form.controls['frequency'].value, frequencyOptions).x" [attr.cy]="hcKnob(form.controls['frequency'].value, frequencyOptions).y"/></svg>
-                        <b>{{ form.controls['frequency'].value }}</b><small>MHz · {{ 'SETTINGS.FREQUENCY' | translate }}</small>
-                        <div class="hc-steps"><button type="button" (click)="hcStep('frequency', -1)" aria-label="-5 MHz">−</button><span>5 MHz</span><button type="button" (click)="hcStep('frequency', 1)" aria-label="+5 MHz">+</button></div>
+                <!-- Hash Commander OS: manual overclock panel (only with the HC OS theme) -->
+                <div class="hcos-only hc-oc" *ngIf="hcOc">
+                    <div class="hc-oc-main">
+                        <div class="hc-oc-hd"><b>⚡ Overclock manual</b>
+                            <div class="hc-seg">
+                                <button type="button" [class.on]="hcMode === 'safe'" (click)="hcSetMode('safe')">Seguro</button>
+                                <button type="button" [class.on]="hcMode === 'lists'" (click)="hcSetMode('lists')">Listas</button>
+                                <button type="button" [class.on]="hcMode === 'manual'" (click)="hcSetMode('manual')">Manual</button>
+                            </div>
+                        </div>
+
+                        <ng-container *ngIf="hcMode !== 'manual'">
+                            <div class="hc-num">
+                                <label>Frequência (MHz)
+                                    <select (change)="hcSet('frequency', +$any($event.target).value)">
+                                        <option *ngFor="let v of hcListValues('frequency')" [value]="v" [selected]="v === +form.controls['frequency'].value">{{ v }}{{ v === defaultFrequency ? ' (padrão)' : '' }}</option>
+                                    </select></label>
+                                <label>Tensão do ASIC (mV)
+                                    <select (change)="hcSet('coreVoltage', +$any($event.target).value)">
+                                        <option *ngFor="let v of hcListValues('coreVoltage')" [value]="v" [selected]="v === +form.controls['coreVoltage'].value">{{ v }}{{ v === defaultCoreVoltage ? ' (padrão)' : '' }}</option>
+                                    </select></label>
+                            </div>
+                            <p class="hc-oc-note" *ngIf="hcMode === 'safe'">Só os valores do fabricante, até {{ hcOc.fWarn }} MHz e {{ hcOc.vWarn }} mV.</p>
+                            <p class="hc-oc-note" *ngIf="hcMode === 'lists'">Todos os valores da lista, até {{ hcOc.fMax }} MHz.</p>
+                        </ng-container>
+
+                        <ng-container *ngIf="hcMode === 'manual'">
+                            <div class="hc-sl" *ngFor="let k of hcKeys">
+                                <div class="top"><span>{{ k === 'frequency' ? 'FREQUÊNCIA' : 'TENSÃO DO ASIC' }}</span>
+                                    <b>{{ form.controls[k].value }} <small>{{ k === 'frequency' ? 'MHz' : 'mV' }}</small></b></div>
+                                <input type="range" class="hc-range" [min]="hcMin(k)" [max]="hcMax(k)" [step]="hcStepSize"
+                                    [value]="form.controls[k].value" (input)="hcSet(k, +$any($event.target).value)"
+                                    [style.background]="hcTrack(k)" />
+                                <div class="scale"><span>{{ hcMin(k) }}</span><span>{{ hcDef(k) }} (padrão)</span><span>{{ hcWarn(k) }}{{ k === 'frequency' ? ' (máx. rev 6)' : '' }}</span><span>{{ hcMax(k) }}</span></div>
+                                <div class="zones" *ngIf="k === 'frequency'"><span class="z1">{{ hcMin(k) }}–{{ hcDef(k) }} seguro</span><span class="z2">{{ hcDef(k) }}–{{ hcWarn(k) }} overclock</span><span class="z3">{{ hcWarn(k) }}–{{ hcMax(k) }} extremo</span></div>
+                            </div>
+                            <div class="hc-num">
+                                <label>Escrever a frequência (MHz)<input type="number" [min]="hcMin('frequency')" [max]="hcMax('frequency')" [value]="form.controls['frequency'].value" (change)="hcSet('frequency', +$any($event.target).value)" /></label>
+                                <label>Escrever a tensão (mV)<input type="number" [min]="hcMin('coreVoltage')" [max]="hcMax('coreVoltage')" [value]="form.controls['coreVoltage'].value" (change)="hcSet('coreVoltage', +$any($event.target).value)" /></label>
+                                <label>Passo<select (change)="hcStepSize = +$any($event.target).value">
+                                    <option *ngFor="let p of [1, 5, 10, 25]" [value]="p" [selected]="p === hcStepSize">{{ p }} MHz / {{ p }} mV</option></select></label>
+                            </div>
+                        </ng-container>
+
+                        <div class="hc-est" *ngIf="hcEst() as e">
+                            <div>Hashrate previsto<b>{{ e.ths | number:'1.2-2' }} TH/s</b></div>
+                            <div>Consumo estimado<b [class.y]="e.wLevel === 1" [class.r]="e.wLevel === 2">~{{ e.watts | number:'1.0-0' }} W</b></div>
+                            <div>Corrente estimada<b [class.y]="e.aLevel === 1" [class.r]="e.aLevel === 2">~{{ e.amps | number:'1.1-1' }} A</b></div>
+                        </div>
+
+                        <div class="hc-oc-warn2" *ngIf="hcRisky()">
+                            ⚠️ <b>Acima de {{ hcOc.fWarn }} MHz ou {{ hcOc.vWarn }} mV a tua placa sai do limite do fabricante.</b>
+                            Nas placas rev 6 o regulador de tensão foi feito para cerca de 100 W: pode aquecer demais, desligar-se ou estragar-se.
+                            A máquina continua a desligar-se sozinha se passar da temperatura de corte ou da corrente máxima.
+                        </div>
+                        <label class="hc-chk" *ngIf="hcRisky()"><input type="checkbox" [checked]="hcAccept" (change)="hcAccept = $any($event.target).checked" />
+                            Percebo os riscos do overclock e quero aplicar estes valores.</label>
+
+                        <div class="hc-btns">
+                            <button type="button" class="hc-btn" [disabled]="hcRisky() && !hcAccept" (click)="hcApply()">⚡ Aplicar e reiniciar</button>
+                            <button type="button" class="hc-btn g" (click)="hcSafe()">↺ Voltar ao seguro ({{ hcDef('frequency') }} MHz · {{ hcDef('coreVoltage') }} mV)</button>
+                        </div>
                     </div>
-                    <div class="hc-dial" [class.hot]="isVoltageTooHigh()" [class.drag]="hcDragging === 'coreVoltage'">
-                        <svg viewBox="0 0 120 120" (pointerdown)="hcDrag($event, 'coreVoltage')" (pointermove)="hcDrag($event, 'coreVoltage')" (pointerup)="hcDragging = null" (pointercancel)="hcDragging = null"><circle class="bg" cx="60" cy="60" r="46" stroke-dasharray="216.8 400" transform="rotate(135 60 60)"/>
-                            <circle class="arc" cx="60" cy="60" r="46" stroke="url(#hcDialG)" [attr.stroke-dasharray]="hcDial(form.controls['coreVoltage'].value, voltageOptions)" transform="rotate(135 60 60)"/>
-                            <circle class="knob" r="7" [attr.cx]="hcKnob(form.controls['coreVoltage'].value, voltageOptions).x" [attr.cy]="hcKnob(form.controls['coreVoltage'].value, voltageOptions).y"/></svg>
-                        <b>{{ form.controls['coreVoltage'].value }}</b><small>mV · {{ 'SETTINGS.CORE_VOLTAGE' | translate }}</small>
-                        <div class="hc-steps"><button type="button" (click)="hcStep('coreVoltage', -1)" aria-label="-5 mV">−</button><span>5 mV</span><button type="button" (click)="hcStep('coreVoltage', 1)" aria-label="+5 mV">+</button></div>
+
+                    <div class="hc-oc-side" *ngIf="!uri">
+                        <h4>TESTE AUTOMÁTICO DEPOIS DE APLICAR</h4>
+                        <ng-container *ngIf="hcNow as n; else hcNoData">
+                            <div class="row"><span>Hashrate (1 min)</span><b>{{ hcTest ? (hcTest.before.hr / 1000 | number:'1.2-2') + ' → ' : '' }}{{ n.hr / 1000 | number:'1.2-2' }} TH/s</b></div>
+                            <div class="row"><span>Erros dos chips</span><b [class.r]="n.err >= 10" [class.g]="n.err < 3">{{ hcTest ? (hcTest.before.err | number:'1.0-1') + ' % → ' : '' }}{{ n.err | number:'1.0-1' }} %</b></div>
+                            <div class="row"><span>Temperatura ASIC</span><b>{{ hcTest ? (hcTest.before.asic | number:'1.0-0') + ' → ' : '' }}{{ n.asic | number:'1.0-0' }} °C</b></div>
+                            <div class="row"><span>Temperatura VR</span><b>{{ hcTest ? (hcTest.before.vr | number:'1.0-0') + ' → ' : '' }}{{ n.vr | number:'1.0-0' }} °C</b></div>
+                            <div class="row"><span>Eficiência</span><b class="g">{{ n.jth | number:'1.1-1' }} J/TH</b></div>
+                            <h4 class="mt">ERROS POR CHIP AGORA</h4>
+                            <div class="hc-chips">
+                                <div *ngFor="let c of n.chips" [class.bad]="c.err >= 15" [class.mid]="c.err >= 5 && c.err < 15"><i [style.height.%]="c.h"></i><span>{{ c.err | number:'1.0-1' }} %</span></div>
+                            </div>
+                            <p class="hc-oc-note" *ngIf="!hcTest">Quando aplicares novos valores, a página guarda estes números e compara-os 5 minutos depois do reinício.</p>
+                            <p class="hc-oc-note" *ngIf="hcTest && hcTestWait() > 0">A testar {{ hcTest.to.f }} MHz · {{ hcTest.to.v }} mV: faltam {{ hcTestWait() }} min para comparar com {{ hcTest.from.f }} MHz · {{ hcTest.from.v }} mV.</p>
+                            <ng-container *ngIf="hcTest && hcTestWait() <= 0">
+                                <p class="hc-oc-note ok" *ngIf="!hcWorse()">✅ Ao fim de 5 minutos os novos valores estão estáveis.</p>
+                                <div class="hc-oc-warn2" *ngIf="hcWorse()">⚠️ {{ hcWorse() }}</div>
+                                <div class="hc-btns">
+                                    <button type="button" class="hc-btn g" *ngIf="hcWorse()" (click)="hcRevert()">↺ Voltar a {{ hcTest.from.f }} MHz · {{ hcTest.from.v }} mV</button>
+                                    <button type="button" class="hc-btn sm" (click)="hcEndTest()">Fechar o teste</button>
+                                </div>
+                            </ng-container>
+                        </ng-container>
+                        <ng-template #hcNoData><p class="hc-oc-note">A ler os dados da máquina…</p></ng-template>
                     </div>
                 </div>
-                <div class="hcos-only hc-oc-warn" *ngIf="form.controls['frequency'].value > 800">
-                    ⚠️ <b>Acima de 800 MHz.</b> Nas placas rev 6 isto passa o limite do fabricante: o regulador de tensão aquece mais
-                    e desliga-se sozinho se passar da corrente máxima. Sobe aos poucos e acompanha a temperatura do VR e os erros dos chips.
-                </div>
+                <div class="hcos-hide">
                 <ng-container *ngIf="supportLevel === 0">
                     <div class="form-row">
                         <label for="frequency" class="form-label">{{ 'SETTINGS.FREQUENCY' | translate }}:</label>
@@ -389,6 +458,7 @@
                         </div>
                     </div>
                 </ng-container>
+                </div>
                 <ng-container *ngIf="supportLevel >= 2">
                     <div class="form-row">
                         <label for="jobInterval" class="form-label">Job Interval:</label>

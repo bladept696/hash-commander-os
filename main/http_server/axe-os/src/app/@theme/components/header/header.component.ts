@@ -7,6 +7,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { map, switchMap, takeUntil } from 'rxjs/operators';
 import { Subject, Observable } from 'rxjs';
 import { IIdentifyV2 } from 'src/app/models/IIdentifyV2';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'ngx-header',
@@ -24,15 +25,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
   // Sidebar state: expanded → compact → collapsed → expanded
   private sidebarState: 'expanded' | 'compact' | 'collapsed' = 'expanded';
 
+  // Hash Commander OS: only its own theme
   themes = [
-    { value: 'cosmic',    name: 'Default' },
-    { value: 'default',   name: 'Light' },
-    { value: 'dark',      name: 'Dark' },
-    { value: 'gaia', name: 'Gaia' },
     { value: 'hcos', name: 'HC OS' },
   ];
 
-  currentTheme = 'cosmic';  // Default theme if none is found in localStorage
+  currentTheme = 'hcos';
+
+  /** newer stable HC OS on GitHub (from /api/hc/info), shown on the badge */
+  hcosUpdate = '';
+  private http = inject(HttpClient);
   logoPath: string = '';    // Resolved logo path for the template
   logoFailed: boolean = false;
   deviceModel: string = 'default'; // Fallback device model
@@ -84,11 +86,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
         }
       });
 
-    // 1) If available, use saved theme
-    let savedTheme = localStorage.getItem('selectedTheme');
-    if (savedTheme && this.isThemeValid(savedTheme)) {
-      this.applyTheme(savedTheme); // no saving here
-    }
+    // Hash Commander OS has only its own theme: older choices saved in this browser are replaced
+    let savedTheme: string | null = 'hcos';
+    this.applyTheme('hcos');
+    this.saveThemeToLocalStorage('hcos');
+    this.http.get<any>('/api/hc/info').subscribe({ next: (r) => (this.hcosUpdate = String(r?.update || '')), error: () => {} });
 
     // 2) Always load backend info (device name/model + default theme)
     this.infoService.getIdentifyV2().subscribe(info => {
@@ -110,7 +112,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.applyTheme(backendTheme);
       } else if (!savedTheme) {
         // 3) Final fallback
-        this.applyTheme('cosmic');
+        this.applyTheme('hcos');
       }
 
       // Finalize bootstrap: now we can safely set logo and persist theme (once)
@@ -122,7 +124,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }, _err => {
       // Backend not responding, use fallback theme and try legacy logo scheme
       if (!savedTheme) {
-        this.applyTheme('cosmic');
+        this.applyTheme('hcos');
       }
       this.bootstrapping = false;
       this.updateLogo();

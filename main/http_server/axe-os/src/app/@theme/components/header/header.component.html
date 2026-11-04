@@ -15,7 +15,7 @@
   </div>
 </div>
 
-<span class="hcos-badge" *ngIf="currentTheme === 'hcos'">HC OS</span>
+<span class="hcos-badge" *ngIf="currentTheme === 'hcos'" [class.hcos-new]="hcosUpdate" [title]="hcosUpdate ? 'Há uma versão nova do Hash Commander OS no GitHub. Instala-a pela app Centro de Comando (aba Hash Commander OS).' : ''">{{ hcosUpdate ? 'HC OS · nova ' + hcosUpdate : 'HC OS' }}</span>
 
 <div class="header-series" *ngIf="currentTheme === 'gaia'" aria-hidden="true">
   <span class="header-series__line"></span>

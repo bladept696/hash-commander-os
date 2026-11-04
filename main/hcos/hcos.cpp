@@ -2,9 +2,12 @@
 // Hash Commander OS — see hcos.h
 #include "hcos.h"
 
+#include <stdio.h>
 #include <string.h>
 
 #include "esp_app_desc.h"
+#include "esp_crt_bundle.h"
+#include "esp_http_client.h"
 #include "esp_heap_caps.h"
 #include "esp_log.h"
 #include "esp_ota_ops.h"
@@ -474,6 +477,7 @@ static esp_err_t GET_info(httpd_req_t *req)
     log["total"] = s_seq;
     log["kept"] = s_seq < CAP ? s_seq : CAP;
     doc["liveClients"] = count_clients();
+    doc["update"] = s_update;
     httpd_resp_set_type(req, "application/json");
     if (set_cors_headers(req) != ESP_OK) {
         httpd_resp_send_500(req);
@@ -565,6 +569,73 @@ static esp_err_t POST_rollback(httpd_req_t *req)
     return ESP_OK;
 }
 
+// ---------------------------------------------------------------- new version check
+static char s_update[16] = "";
+
+const char *update_available() { return s_update; }
+
+// "0.4.2" -> 4002 style number for comparing; -1 when it is not x.y.z
+static long ver_num(const char *v)
+{
+    int a = 0, b = 0, c = 0;
+    if (!v || sscanf(v, "%d.%d.%d", &a, &b, &c) != 3) return -1;
+    return (long) a * 1000000L + (long) b * 1000L + c;
+}
+
+static void check_update_once()
+{
+    const int CAPB = 48 * 1024;
+    char *body = (char *) heap_caps_malloc(CAPB, MALLOC_CAP_SPIRAM);
+    if (!body) return;
+    esp_http_client_config_t cfg = {};
+    cfg.url = "https://api.github.com/repos/bladept696/hash-commander-os/releases/latest";
+    cfg.timeout_ms = 10000;
+    cfg.crt_bundle_attach = esp_crt_bundle_attach;
+    cfg.buffer_size = 2048;
+    esp_http_client_handle_t cl = esp_http_client_init(&cfg);
+    if (cl) {
+        esp_http_client_set_header(cl, "User-Agent", "HashCommanderOS/" HCOS_VERSION);
+        esp_http_client_set_header(cl, "Accept", "application/vnd.github+json");
+        if (esp_http_client_open(cl, 0) == ESP_OK) {
+            esp_http_client_fetch_headers(cl);
+            int status = esp_http_client_get_status_code(cl);
+            int n = 0, r;
+            while (n < CAPB - 1 && (r = esp_http_client_read(cl, body + n, CAPB - 1 - n)) > 0) n += r;
+            body[n] = 0;
+            // the tag is near the top of the JSON: "tag_name":"hcos-v0.4.2"
+            const char *t = status == 200 ? strstr(body, "\"tag_name\"") : nullptr;
+            if (t && (t = strstr(t, "hcos-v"))) {
+                char v[16] = "";
+                t += 6;
+                int i = 0;
+                while (i < 15 && ((t[i] >= '0' && t[i] <= '9') || t[i] == '.')) { v[i] = t[i]; i++; }
+                v[i] = 0;
+                long nv = ver_num(v), cur = ver_num(HCOS_VERSION);
+                if (nv > 0 && cur > 0 && nv > cur) {
+                    strncpy(s_update, v, sizeof(s_update) - 1);
+                    ESP_LOGI(TAG, "new HC OS on GitHub: %s (running %s)", v, HCOS_VERSION);
+                } else {
+                    s_update[0] = 0;
+                }
+            } else {
+                ESP_LOGW(TAG, "update check: HTTP %d", status);
+            }
+        }
+        esp_http_client_close(cl);
+        esp_http_client_cleanup(cl);
+    }
+    heap_caps_free(body);
+}
+
+static void update_task(void *)
+{
+    vTaskDelay(pdMS_TO_TICKS(3 * 60 * 1000));   // let wifi, the pool and the boot guard settle first
+    for (;;) {
+        check_update_once();
+        vTaskDelay(pdMS_TO_TICKS(6 * 60 * 60 * 1000));
+    }
+}
+
 void register_http(httpd_handle_t server)
 {
     s_server = server;
@@ -586,6 +657,7 @@ void start()
     // internal RAM stack: this task writes NVS (mark_healthy) and the flash write turns the PSRAM cache off,
     // so a PSRAM stack crashes it (the same reason the OTA task is not created on PSRAM)
     xTaskCreate(live_task, "hcos live", 6144, NULL, 2, NULL);
+    xTaskCreate(update_task, "hcos update", 8192, NULL, 1, NULL);
 }
 
 } // namespace hcos
