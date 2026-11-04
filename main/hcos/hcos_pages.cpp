@@ -283,7 +283,7 @@ lv_obj_t *page_btc_create()
 // ---------------------------------------------------------------- bitcoin network
 static void update_net()
 {
-    char buf[64];
+    char buf[128];
     uint64_t nh = APIs_FETCHER.getNetHash();
     snprintf(buf, sizeof(buf), "%llu", (unsigned long long) nh);
     lv_label_set_text(P.netHash, nh ? buf : "-");
