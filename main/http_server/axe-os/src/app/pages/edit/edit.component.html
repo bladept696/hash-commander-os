@@ -344,6 +344,10 @@
                         <b>{{ form.controls['coreVoltage'].value }}</b><small>mV · {{ 'SETTINGS.CORE_VOLTAGE' | translate }}</small>
                     </div>
                 </div>
+                <div class="hcos-only hc-oc-warn" *ngIf="form.controls['frequency'].value > 800">
+                    ⚠️ <b>Acima de 800 MHz.</b> Nas placas rev 6 isto passa o limite do fabricante: o regulador de tensão aquece mais
+                    e desliga-se sozinho se passar da corrente máxima. Sobe aos poucos e acompanha a temperatura do VR e os erros dos chips.
+                </div>
                 <ng-container *ngIf="supportLevel === 0">
                     <div class="form-row">
                         <label for="frequency" class="form-label">{{ 'SETTINGS.FREQUENCY' | translate }}:</label>

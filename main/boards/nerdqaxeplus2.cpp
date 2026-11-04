@@ -23,11 +23,15 @@ NerdQaxePlus2::NerdQaxePlus2() : NerdQaxePlus() {
     m_ifault = (float) (m_imax + 5);
 
     m_asicJobIntervalMs = 500;
-    m_asicFrequencies = {500, 515, 525, 550, 575, 590, 600};
-    m_asicVoltages = {1120, 1130, 1140, 1150, 1160, 1170, 1180, 1190, 1200};
+    // Hash Commander OS: manual overclock up to 1000 MHz / 1300 mV on every revision (the same list as rev 7).
+    // The current (m_ifault) and temperature protections are unchanged and still switch the board off.
+    m_asicFrequencies = {500, 515, 525, 550, 575, 590, 600, 625, 650, 675, 700, 725,
+                         750, 775, 800, 825, 850, 875, 900, 925, 950, 975, 1000};
+    m_asicVoltages = {1120, 1130, 1140, 1150, 1160, 1170, 1180, 1190, 1200, 1210,
+                      1220, 1230, 1240, 1250, 1260, 1270, 1280, 1290, 1300};
     m_defaultAsicFrequency = m_asicFrequency = 600;
     m_defaultAsicVoltageMillis = m_asicVoltageMillis = 1150; // default voltage
-    m_absMaxAsicFrequency = 800;
+    m_absMaxAsicFrequency = 1000;
     m_absMaxAsicVoltageMillis = 1400;
     m_initVoltageMillis = 1200;
 
