@@ -424,6 +424,9 @@ void UI::miningScreenInit(void)
     // Hash Commander OS: the neon screen takes the place of the stock one. The stock screen is kept
     // (never shown) so the display driver can keep writing its labels.
     ui_MiningScreen = hcos::screen_create(m_board);
+    // the display driver ignores the buttons while a screen change runs and only takes them again when the
+    // new screen reports "loaded": without this callback the buttons stayed dead after showing this screen
+    lv_obj_add_event_cb(ui_MiningScreen, on_screen_loaded, LV_EVENT_SCREEN_LOADED, m_display);
 }
 
 void UI::settingsScreenInit(void)
