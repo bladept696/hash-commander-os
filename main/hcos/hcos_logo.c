@@ -3,6 +3,7 @@
 // "BITMINER33" is drawn with Rock Salt (Apache 2.0); generated from the web logo with thicker strokes so it
 // stays sharp at this size, not edited by hand.
 #include "lvgl.h"
+#ifndef HCOS_BIG
 
 static const uint8_t hcos_logo_map[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -584,3 +585,4 @@ const lv_img_dsc_t hcos_logo = {
     .data_size = sizeof(hcos_logo_map),
     .data = hcos_logo_map,
 };
+#endif

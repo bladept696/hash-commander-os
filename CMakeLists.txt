@@ -15,6 +15,19 @@ endif()
 
 message(STATUS "Selected board: $ENV{BOARD}")
 
+# Hash Commander OS: HCOS_DISPLAY=BIG builds for the YYSLUPING big-screen NerdQAxe++ (480x320 display, 32 MB BOYA
+# flash, its own partition table). Without it the build is the stock NerdQAxe++ (320x170, 16 MB) as before.
+if(DEFINED ENV{HCOS_DISPLAY} AND "$ENV{HCOS_DISPLAY}" STREQUAL "BIG")
+    if(NOT "$ENV{BOARD}" STREQUAL "NERDQAXEPLUS2")
+        message(FATAL_ERROR "HCOS_DISPLAY=BIG requires BOARD=NERDQAXEPLUS2")
+    endif()
+    add_compile_definitions(HCOS_BIG)
+    set(SDKCONFIG_DEFAULTS "sdkconfig.defaults;sdkconfig.hcos-big.defaults")
+    message(STATUS "Hash Commander OS: big screen 480x320")
+else()
+    set(EXCLUDE_COMPONENTS yysluping_boya_flash)
+endif()
+
 set(ENV{SOURCE_DATE_EPOCH} 0)
 
 

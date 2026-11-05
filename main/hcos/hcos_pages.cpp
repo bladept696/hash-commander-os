@@ -15,10 +15,6 @@
 #include "stratum/stratum_manager_dual_pool.h"
 #include "stratum/stratum_manager_fallback.h"
 
-LV_FONT_DECLARE(ui_font_OpenSansBold13);
-LV_FONT_DECLARE(ui_font_OpenSansBold14);
-LV_FONT_DECLARE(ui_font_OpenSansBold24);
-LV_FONT_DECLARE(ui_font_OpenSansBold45);
 
 namespace hcos {
 
@@ -37,11 +33,11 @@ static lv_obj_t *pbox(lv_obj_t *parent, int x, int y, int w, int h, lv_color_t b
 {
     lv_obj_t *o = lv_obj_create(parent);
     lv_obj_remove_style_all(o);
-    lv_obj_set_pos(o, x, y);
-    lv_obj_set_size(o, w, h);
+    lv_obj_set_pos(o, HS(x), HS(y));
+    lv_obj_set_size(o, HS(w), HS(h));
     lv_obj_set_style_bg_color(o, bg, 0);
     lv_obj_set_style_bg_opa(o, opa, 0);
-    lv_obj_set_style_radius(o, radius, 0);
+    lv_obj_set_style_radius(o, radius == LV_RADIUS_CIRCLE ? radius : HS(radius), 0);
     lv_obj_clear_flag(o, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
     return o;
 }
@@ -51,7 +47,7 @@ static lv_obj_t *plabel(lv_obj_t *parent, const lv_font_t *font, lv_color_t colo
     lv_obj_t *l = lv_label_create(parent);
     lv_obj_set_style_text_font(l, font, 0);
     lv_obj_set_style_text_color(l, color, 0);
-    lv_obj_set_pos(l, x, y);
+    lv_obj_set_pos(l, HS(x), HS(y));
     lv_label_set_text(l, txt);
     return l;
 }
@@ -70,16 +66,16 @@ static lv_obj_t *pbar(lv_obj_t *parent, int x, int y, int w, int h)
 {
     lv_obj_t *b = lv_bar_create(parent);
     lv_obj_remove_style_all(b);
-    lv_obj_set_pos(b, x, y);
-    lv_obj_set_size(b, w, h);
+    lv_obj_set_pos(b, HS(x), HS(y));
+    lv_obj_set_size(b, HS(w), HS(h));
     lv_obj_set_style_bg_color(b, lv_color_hex(0x2a2140), 0);
     lv_obj_set_style_bg_opa(b, LV_OPA_COVER, 0);
-    lv_obj_set_style_radius(b, h / 2, 0);
+    lv_obj_set_style_radius(b, HS(h) / 2, 0);
     lv_obj_set_style_bg_color(b, P_CYAN, LV_PART_INDICATOR);
     lv_obj_set_style_bg_grad_color(b, lv_color_hex(0xff4fd8), LV_PART_INDICATOR);
     lv_obj_set_style_bg_grad_dir(b, LV_GRAD_DIR_HOR, LV_PART_INDICATOR);
     lv_obj_set_style_bg_opa(b, LV_OPA_COVER, LV_PART_INDICATOR);
-    lv_obj_set_style_radius(b, h / 2, LV_PART_INDICATOR);
+    lv_obj_set_style_radius(b, HS(h) / 2, LV_PART_INDICATOR);
     lv_bar_set_range(b, 0, 1000);
     return b;
 }
@@ -103,10 +99,10 @@ static lv_obj_t *page(const char *title, int idx)
     lv_obj_set_style_bg_grad_dir(scr, LV_GRAD_DIR_VER, 0);
     lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, 0);
     pbox(scr, -60, -80, 220, 160, lv_color_hex(0x5a2bd6), 22, LV_RADIUS_CIRCLE);
-    for (int x = 16; x < 320; x += 16) pbox(scr, x, 0, 1, 170, P_WHITE, 4, 0);
-    for (int y = 16; y < 170; y += 16) pbox(scr, 0, y, 320, 1, P_WHITE, 4, 0);
+    for (int x = 16; x < 320; x += 16) pbox(scr, x, 0, 1, HCOS_LH, P_WHITE, 4, 0);
+    for (int y = 16; y < HCOS_LH; y += 16) pbox(scr, 0, y, 320, 1, P_WHITE, 4, 0);
     pbox(scr, 8, 7, 6, 6, P_GREEN, LV_OPA_COVER, LV_RADIUS_CIRCLE);
-    plabel(scr, &ui_font_OpenSansBold13, P_PINK, 18, 2, title);
+    plabel(scr, F_O13, P_PINK, 18, 2, title);
     nav_dots(scr, idx);
     return scr;
 }
@@ -164,7 +160,7 @@ static void update_pool()
         lv_label_set_text(P.shAcc, buf);
         snprintf(buf, sizeof(buf), "/ %llu", (unsigned long long) rej);
         lv_label_set_text(P.shRej, buf);
-        lv_obj_align_to(P.shRej, P.shAcc, LV_ALIGN_OUT_RIGHT_BOTTOM, 4, 0);
+        lv_obj_align_to(P.shRej, P.shAcc, LV_ALIGN_OUT_RIGHT_BOTTOM, HS(4), 0);
         lv_bar_set_value(P.shBar, acc + rej ? (int) (acc * 1000 / (acc + rej)) : 0, LV_ANIM_OFF);
     }
     if (board) {
@@ -193,34 +189,34 @@ lv_obj_t *page_pool_create()
     lv_obj_t *s = page("POOL E MAQUINA", 1);
     P.pool = s;
     lv_obj_t *c = card(s, 8, 22, 204, 46, lv_color_hex(0x9b5cff));
-    P.poolNr = plabel(c, &lv_font_montserrat_10, P_MUTED, 6, 3, "POOL ATIVA");
-    P.poolPort = plabel(c, &lv_font_montserrat_10, P_GREEN, 150, 3, ":0");
-    P.poolHost = plabel(c, &ui_font_OpenSansBold14, P_WHITE, 6, 20, "-");
+    P.poolNr = plabel(c, F_M10, P_MUTED, 6, 3, "POOL ATIVA");
+    P.poolPort = plabel(c, F_M10, P_GREEN, 150, 3, ":0");
+    P.poolHost = plabel(c, F_O14, P_WHITE, 6, 20, "-");
     lv_label_set_long_mode(P.poolHost, LV_LABEL_LONG_DOT);
-    lv_obj_set_width(P.poolHost, 192);
+    lv_obj_set_width(P.poolHost, HS(192));
 
     lv_obj_t *b = card(s, 218, 22, 94, 46, P_GOLD);
-    plabel(b, &lv_font_montserrat_10, P_MUTED, 6, 3, "MELHOR DIFF");
-    P.bd = plabel(b, &ui_font_OpenSansBold24, P_GOLD, 6, 15, "-");
+    plabel(b, F_M10, P_MUTED, 6, 3, "MELHOR DIFF");
+    P.bd = plabel(b, F_O24, P_GOLD, 6, 15, "-");
 
-    plabel(s, &lv_font_montserrat_10, P_MUTED, 8, 72, "SHARES ACEITES / REJEITADAS");
+    plabel(s, F_M10, P_MUTED, 8, 72, "SHARES ACEITES / REJEITADAS");
     P.shBar = pbar(s, 8, 88, 204, 7);
-    P.shAcc = plabel(s, &ui_font_OpenSansBold14, P_WHITE, 220, 82, "0");
-    P.shRej = plabel(s, &ui_font_OpenSansBold14, P_RED, 250, 82, "/ 0");
+    P.shAcc = plabel(s, F_O14, P_WHITE, 220, 82, "0");
+    P.shRej = plabel(s, F_O14, P_RED, 250, 82, "/ 0");
 
     const char *keys[3] = {"FREQUENCIA", "TENSAO", "VENTOINHA"};
     lv_obj_t **vals[3] = {&P.freq, &P.volt, &P.fan};
     for (int i = 0; i < 3; i++) {
         lv_obj_t *k = card(s, 8 + i * 102, 102, 98, 38, lv_color_hex(0x4a4060));
-        plabel(k, &lv_font_montserrat_10, P_MUTED, 6, 3, keys[i]);
-        *vals[i] = plabel(k, &ui_font_OpenSansBold14, P_WHITE, 6, 17, "-");
+        plabel(k, F_M10, P_MUTED, 6, 3, keys[i]);
+        *vals[i] = plabel(k, F_O14, P_WHITE, 6, 17, "-");
     }
 
     lv_obj_t *ipb = pbox(s, 8, 148, 104, 16, lv_color_hex(0x0b1520), LV_OPA_COVER, 8);
     lv_obj_set_style_border_color(ipb, P_CYAN, 0);
     lv_obj_set_style_border_width(ipb, 1, 0);
-    P.ip = plabel(ipb, &lv_font_montserrat_10, P_CYAN, 7, 2, "0.0.0.0");
-    P.up = plabel(s, &ui_font_OpenSansBold13, P_SOFT, 150, 149, "ligada");
+    P.ip = plabel(ipb, F_M10, P_CYAN, 7, 2, "0.0.0.0");
+    P.up = plabel(s, F_O13, P_SOFT, 150, 149, "ligada");
     update_pool();
     return s;
 }
@@ -259,23 +255,23 @@ lv_obj_t *page_btc_create()
 {
     lv_obj_t *s = page("BITCOIN", 2);
     P.btc = s;
-    plabel(s, &lv_font_montserrat_10, P_MUTED, 8, 22, "PRECO (USD)");
-    P.price = plabel(s, &ui_font_OpenSansBold45, P_WHITE, 6, 30, "a carregar");
+    plabel(s, F_M10, P_MUTED, 8, 22, "PRECO (USD)");
+    P.price = plabel(s, F_O45, P_WHITE, 6, 30, "a carregar");
     lv_obj_set_style_text_letter_space(P.price, 1, 0);
 
-    plabel(s, &lv_font_montserrat_10, P_MUTED, 8, 88, "BLOCO ATUAL");
-    P.block = plabel(s, &ui_font_OpenSansBold24, P_CYAN, 8, 100, "-");
+    plabel(s, F_M10, P_MUTED, 8, 88, "BLOCO ATUAL");
+    P.block = plabel(s, F_O24, P_CYAN, 8, 100, "-");
 
-    plabel(s, &lv_font_montserrat_10, P_MUTED, 150, 88, "TAXAS (sat/vB)");
+    plabel(s, F_M10, P_MUTED, 150, 88, "TAXAS (sat/vB)");
     const char *names[3] = {"BAIXA", "MEDIA", "RAPIDA"};
     lv_color_t cols[3] = {P_GREEN, P_GOLD, P_RED};
     lv_obj_t **vals[3] = {&P.feeLo, &P.feeMid, &P.feeHi};
     for (int i = 0; i < 3; i++) {
         lv_obj_t *k = card(s, 150 + i * 55, 102, 51, 36, cols[i]);
-        plabel(k, &lv_font_montserrat_10, cols[i], 5, 2, names[i]);
-        *vals[i] = plabel(k, &ui_font_OpenSansBold14, P_WHITE, 5, 16, "-");
+        plabel(k, F_M10, cols[i], 5, 2, names[i]);
+        *vals[i] = plabel(k, F_O14, P_WHITE, 5, 16, "-");
     }
-    P.mine = plabel(s, &ui_font_OpenSansBold13, P_SOFT, 8, 149, "");
+    P.mine = plabel(s, F_O13, P_SOFT, 8, 149, "");
     update_btc();
     return s;
 }
@@ -321,19 +317,19 @@ lv_obj_t *page_net_create()
     lv_obj_t *s = page("REDE BITCOIN", 3);
     P.net = s;
     lv_obj_t *a = card(s, 8, 22, 148, 54, lv_color_hex(0x9b5cff));
-    plabel(a, &lv_font_montserrat_10, P_MUTED, 6, 3, "HASHRATE DA REDE");
-    P.netHash = plabel(a, &ui_font_OpenSansBold24, P_WHITE, 6, 18, "-");
-    plabel(a, &ui_font_OpenSansBold13, P_SOFT, 104, 30, "EH/s");
+    plabel(a, F_M10, P_MUTED, 6, 3, "HASHRATE DA REDE");
+    P.netHash = plabel(a, F_O24, P_WHITE, 6, 18, "-");
+    plabel(a, F_O13, P_SOFT, 104, 30, "EH/s");
     lv_obj_t *b = card(s, 164, 22, 148, 54, lv_color_hex(0x9b5cff));
-    plabel(b, &lv_font_montserrat_10, P_MUTED, 6, 3, "DIFICULDADE");
-    P.diff = plabel(b, &ui_font_OpenSansBold24, P_WHITE, 6, 18, "-");
-    plabel(b, &ui_font_OpenSansBold13, P_SOFT, 104, 30, "T");
+    plabel(b, F_M10, P_MUTED, 6, 3, "DIFICULDADE");
+    P.diff = plabel(b, F_O24, P_WHITE, 6, 18, "-");
+    plabel(b, F_O13, P_SOFT, 104, 30, "T");
 
-    plabel(s, &lv_font_montserrat_10, P_MUTED, 8, 86, "PROXIMO HALVING");
-    P.halvPct = plabel(s, &ui_font_OpenSansBold14, P_PINK, 262, 82, "0 %");
+    plabel(s, F_M10, P_MUTED, 8, 86, "PROXIMO HALVING");
+    P.halvPct = plabel(s, F_O14, P_PINK, 262, 82, "0 %");
     P.halvBar = pbar(s, 8, 102, 304, 10);
-    P.halvLeft = plabel(s, &ui_font_OpenSansBold13, P_WHITE, 8, 118, "");
-    P.share = plabel(s, &ui_font_OpenSansBold13, P_MUTED, 8, 149, "");
+    P.halvLeft = plabel(s, F_O13, P_WHITE, 8, 118, "");
+    P.share = plabel(s, F_O13, P_MUTED, 8, 149, "");
     update_net();
     return s;
 }

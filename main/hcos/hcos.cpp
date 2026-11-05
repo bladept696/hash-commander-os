@@ -481,6 +481,11 @@ static esp_err_t GET_info(httpd_req_t *req)
     log["kept"] = s_seq < CAP ? s_seq : CAP;
     doc["liveClients"] = count_clients();
     doc["update"] = s_update;
+#ifdef HCOS_BIG
+    doc["display"] = "480x320";     // the app installs the "hcosbig" firmware on this machine
+#else
+    doc["display"] = "320x170";
+#endif
     httpd_resp_set_type(req, "application/json");
     if (set_cors_headers(req) != ESP_OK) {
         httpd_resp_send_500(req);

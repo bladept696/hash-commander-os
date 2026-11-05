@@ -56,6 +56,21 @@ jobs:
         sudo cp build/esp-miner.elf "out/hcos-${LABEL}-${VERSION}.elf"
         ls -la out
 
+    - name: Build for the 3.5 inch screen (480x320, YYSLUPING big-screen NerdQAxe++)
+      run: |
+        sudo rm -rf build sdkconfig
+        docker run --rm --user root -e BOARD=$BOARD -e HCOS_DISPLAY=BIG -v $PWD:/home/builder/project shufps/esp-idf-builder:5.3.6 idf.py set-target esp32s3
+        docker run --rm --user root -e BOARD=$BOARD -e HCOS_DISPLAY=BIG -v $PWD:/home/builder/project shufps/esp-idf-builder:5.3.6 idf.py build
+        docker run --rm --user root -v $PWD:/home/builder/project shufps/esp-idf-builder:5.3.6 esptool.py --chip esp32s3 merge_bin \
+          --flash_mode dio --flash_size 32MB --flash_freq 80m \
+          0x0 build/bootloader/bootloader.bin 0x8000 build/partition_table/partition-table.bin 0x10000 build/esp-miner.bin \
+          0x1000000 build/www.bin 0xf10000 build/ota_data_initial.bin \
+          -o "hcosbig-factory-${LABEL}-${VERSION}.bin"
+        sudo cp build/esp-miner.bin "out/hcosbig-${LABEL}-${VERSION}.bin"
+        sudo cp "hcosbig-factory-${LABEL}-${VERSION}.bin" out/
+        sudo cp build/esp-miner.elf "out/hcosbig-${LABEL}-${VERSION}.elf"
+        ls -la out
+
     - name: Keep the web page files (to preview the dashboard without a miner)
       run: sudo tar -czf out-web.tgz -C main/http_server/axe-os/dist axe-os
 

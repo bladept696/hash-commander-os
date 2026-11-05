@@ -11,6 +11,31 @@
 
 #pragma GCC diagnostic ignored "-Wdeprecated-enum-enum-conversion"
 
+#ifdef HCOS_BIG
+LV_IMG_DECLARE(hcos_splash);
+// 480x320: the stock screens that HC OS keeps get the HC OS background and big fonts instead of a blown-up 320x170 image
+static void hcos_big_bg(lv_obj_t *scr)
+{
+    lv_obj_t *bg = lv_img_create(scr);
+    lv_img_set_src(bg, &hcos_splash);
+    lv_obj_set_pos(bg, 0, 0);
+    lv_obj_move_background(bg);
+}
+
+static lv_obj_t *hcos_big_text(lv_obj_t *parent, const char *txt, int y, const lv_font_t *font, uint32_t color)
+{
+    lv_obj_t *l = lv_label_create(parent);
+    lv_label_set_text(l, txt);
+    lv_obj_set_width(l, 460);
+    lv_obj_set_pos(l, 10, y);
+    lv_label_set_long_mode(l, LV_LABEL_LONG_WRAP);
+    lv_obj_set_style_text_font(l, font, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(l, lv_color_hex(color), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(l, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+    return l;
+}
+#endif
+
 UI::UI() {
     m_last_screen_change_time = 0;
 }
@@ -99,6 +124,15 @@ void UI::splash2ScreenInit(void)
     lv_obj_set_style_text_opa(ui_lbConnect, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_lbConnect, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_lbConnect, &ui_font_OpenSansBold13, LV_PART_MAIN | LV_STATE_DEFAULT);
+#ifdef HCOS_BIG
+    lv_obj_add_flag(ui_Image1, LV_OBJ_FLAG_HIDDEN);
+    hcos_big_bg(ui_Splash2);
+    lv_obj_set_align(ui_lbConnect, LV_ALIGN_TOP_LEFT);
+    lv_obj_set_width(ui_lbConnect, 460);
+    lv_obj_set_pos(ui_lbConnect, 10, 236);
+    lv_obj_set_style_text_align(ui_lbConnect, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_lbConnect, F_O14, LV_PART_MAIN | LV_STATE_DEFAULT);
+#endif
 
     // lv_obj_add_event_cb(ui_Splash2, ui_event_Splash2, LV_EVENT_ALL, NULL);
 
@@ -240,6 +274,21 @@ void UI::portalScreenInit(void)
     lv_obj_set_style_text_align(ui_lbSSID, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_lbSSID, &ui_font_OpenSansBold13, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_add_event_cb(ui_PortalScreen, on_screen_loaded, LV_EVENT_SCREEN_LOADED, m_display);
+#ifdef HCOS_BIG
+    lv_obj_add_flag(ui_Image1, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_set_style_bg_color(ui_PortalScreen, lv_color_hex(0x07050d), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_PortalScreen, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DEFAULT);
+    hcos_big_text(ui_PortalScreen, "CONFIGURAR WI-FI", 34, F_O24, 0xff7be5);
+    hcos_big_text(ui_PortalScreen, "Liga o telemovel a esta rede Wi-Fi:", 102, F_M14, 0xd6c2ff);
+    lv_obj_set_align(ui_lbSSID, LV_ALIGN_TOP_LEFT);
+    lv_obj_set_width(ui_lbSSID, 460);
+    lv_obj_set_pos(ui_lbSSID, 10, 142);
+    lv_obj_set_style_text_align(ui_lbSSID, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_lbSSID, F_O24, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(ui_lbSSID, lv_color_hex(0x3dff9a), LV_PART_MAIN | LV_STATE_DEFAULT);
+    hcos_big_text(ui_PortalScreen, "Depois abre 192.168.4.1 no navegador", 214, F_M14, 0xece8ff);
+    hcos_big_text(ui_PortalScreen, "Hash Commander OS", 280, F_M10, 0x8f88a8);
+#endif
 
     // lv_obj_add_event_cb(ui_Splash2, ui_event_Splash2, LV_EVENT_ALL, NULL);
 
@@ -780,7 +829,11 @@ void UI::createQRScreen(uint8_t *buf, int size) {
     }
 
     const int quiet = 4;
+#ifdef HCOS_BIG
+    const int max_px = 240;
+#else
     const int max_px = 160;
+#endif
     const int n     = size;                          // modules per side
     const int scale = std::max(2, max_px / (n + 2*quiet));
     const int img   = (n + 2*quiet) * scale;         // final pixels per side
@@ -816,7 +869,11 @@ void UI::createQRScreen(uint8_t *buf, int size) {
         lv_obj_set_style_text_font(label, &ui_font_OpenSansBold14, LV_PART_MAIN | LV_STATE_DEFAULT);
         lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_LEFT, 0);
 
+#ifdef HCOS_BIG
+        const int screen_w = 480;
+#else
         const int screen_w = 320;
+#endif
         const int label_area_w = screen_w / 2;
 
         lv_obj_set_width(label, label_area_w - 20); // small margin inside left half
@@ -863,6 +920,10 @@ void UI::powerOffScreenInit(void)
     lv_obj_t *img = lv_img_create(ui_PowerOffScreen);
     lv_img_set_src(img, &ui_img_safe_png);
     lv_obj_align(img, LV_ALIGN_CENTER, 0, 0);  // Center of screen
+#ifdef HCOS_BIG
+    lv_img_set_zoom(img, 384);
+    lv_img_set_antialias(img, true);
+#endif
     lv_obj_add_event_cb(ui_PowerOffScreen, on_screen_loaded, LV_EVENT_SCREEN_LOADED, m_display);
 }
 
@@ -922,6 +983,15 @@ void UI::showErrorOverlay(const char *error_message, uint32_t error_code)
     //lv_obj_set_style_text_font(code_label, &lv_font_unscii_8, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(code_label, &ui_font_vt323_21, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(code_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+#ifdef HCOS_BIG
+    lv_obj_set_size(ui_errOverlayContainer, 420, 126);
+    lv_obj_align(ui_errOverlayContainer, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_set_width(error_label, 390);
+    lv_label_set_long_mode(error_label, LV_LABEL_LONG_WRAP);
+    lv_obj_set_y(error_label, 6);
+    lv_obj_set_width(code_label, 390);
+    lv_obj_set_y(code_label, -6);
+#endif
 }
 
 void UI::hideErrorOverlay()

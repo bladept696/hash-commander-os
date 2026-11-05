@@ -1,0 +1,7 @@
+# Hash Commander OS big-screen build (HCOS_DISPLAY=BIG): applied after sdkconfig.defaults.
+# 32 MB BOYA flash with the same partition layout as the YYSLUPING big-screen NerdQAxe++.
+CONFIG_ESPTOOLPY_FLASHSIZE_32MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="32MB"
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions_hcos_big_32mb.csv"
+CONFIG_PARTITION_TABLE_FILENAME="partitions_hcos_big_32mb.csv"
+CONFIG_SPI_FLASH_OVERRIDE_CHIP_DRIVER_LIST=y

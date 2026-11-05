@@ -1,0 +1,5 @@
+[mapping:yysluping_boya_flash]
+archive: libyysluping_boya_flash.a
+entries:
+    chip_drivers (noflash)
+    spi_flash_chip_boya_32mb (noflash)

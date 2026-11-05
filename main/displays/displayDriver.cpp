@@ -768,7 +768,11 @@ lv_obj_t *DisplayDriver::initTDisplayS3(void)
 
     esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = TDISPLAYS3_PIN_NUM_RST,
+#ifdef HCOS_BIG
+        .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_BGR,
+#else
         .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_RGB,
+#endif
         .bits_per_pixel = 16,
     };
 
@@ -780,6 +784,10 @@ lv_obj_t *DisplayDriver::initTDisplayS3(void)
 
     esp_lcd_panel_swap_xy(panel_handle, true);
 
+#ifdef HCOS_BIG
+    esp_lcd_panel_mirror(panel_handle, false, false);
+    esp_lcd_panel_set_gap(panel_handle, 0, 0);
+#else
     Board *board = SYSTEM_MODULE.getBoard();
     if (!board->isFlipScreenEnabled()) {
         esp_lcd_panel_mirror(panel_handle, true, false);
@@ -789,6 +797,7 @@ lv_obj_t *DisplayDriver::initTDisplayS3(void)
 
     // the gap is LCD panel specific, even panels with the same driver IC, can have different gap value
     esp_lcd_panel_set_gap(panel_handle, 0, 35);
+#endif
 
     ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, true));
 
